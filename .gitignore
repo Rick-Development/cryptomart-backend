@@ -18,8 +18,8 @@ yarn-error.log
 /.vscode
 /public/html
 /*.zip
-/storage/debugber
-/storage/debugber/.*
+/storage
+/storage/debugbar
 /public/fileholder/img/*.jpg
 /public/fileholder/img/*.jpeg
 /public/fileholder/img/*.webp
