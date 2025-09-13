@@ -74,4 +74,9 @@ class QuidaxService
     {
         return $this->curl->get("v1/users/{$quidax_id}/withdraws/{$withdrawal_id}/cancel");
     }
+
+    public function initiate_ramp_transaction()
+    {
+        return $this->curl->get("v1/merchants/custodial/on_ramp_transactions/initiate");
+    }
 }

@@ -16,8 +16,16 @@ class VerificationGuardApi
      */
     public function handle(Request $request, Closure $next)
     {
-        $user = auth()->user();
-        if($user->email_verified == false) return mailVerificationTemplateApi($user);
+        $user = auth('api')->user();
+        if (!$user) {
+            return response([
+                'message' => 'Unauthenticated',
+            ]);
+        }
+
+        if (!$user->email_verified) {
+            return mailVerificationTemplateApi($user);
+        }
         return $next($request);
     }
 }

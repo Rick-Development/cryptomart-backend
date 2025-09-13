@@ -15,7 +15,7 @@ use App\Http\Controllers\Api\V1\User\StrowalletVirtualCardController;
 use App\Http\Controllers\Api\V1\User\QuidaxController;
 
 Route::prefix("user")->name("api.user.")->group(function(){
-    Route::middleware('auth:api','verification.guard.api')->group(function(){
+    Route::middleware(['auth:api','verification.guard.api'])->group(function(){
         // profile
         Route::controller(ProfileController::class)->prefix('profile')->group(function(){
             Route::get('info','profileInfo');
@@ -35,6 +35,7 @@ Route::prefix("user")->name("api.user.")->group(function(){
                  Route::post("create-swap-quotation","createSwapQuotation");
                  Route::post("swap","swap");
                  Route::get('fetch-withdraws', "fetch_withdraws");
+                 Route::post('initiate-ramp-transaction', "ramp_transaction");
              });
 
         // Dashboard, Notification,

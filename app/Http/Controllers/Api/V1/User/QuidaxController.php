@@ -93,6 +93,13 @@ class QuidaxController extends Controller
         return Response::success($response['message'], $response['data']);
     }
 
+    public function ramp_transaction()
+    {
+        $response = $this->quidax->initiate_ramp_transaction();
+        dd($response);
+        // return Response::success();
+    }
+
 
     // createCryptoPaymentAddress($quidax_id,$currency,$data)
 

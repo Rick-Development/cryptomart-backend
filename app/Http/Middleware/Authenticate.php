@@ -20,7 +20,8 @@ class Authenticate extends Middleware
             }else if($request->routeIs("user.*")) {
                 return route('user.login');
             }
-            return route('frontend.index');
+            // return route('frontend.index');
+            dd('Unauthenticated');
         }
     }
 }

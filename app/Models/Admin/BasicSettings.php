@@ -21,7 +21,7 @@ class BasicSettings extends Model
         'site_fav_dark'            => 'string',
         'site_fav'                 => 'string',
         'email_notification'          => 'integer',
-        'email_verification'          => 'integer',
+        'email_verification'          => 'boolean',
         'agree_policy'              => 'integer',
         'user_registration'          => 'integer',
     ];
