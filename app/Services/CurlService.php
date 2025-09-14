@@ -5,13 +5,16 @@ namespace App\Services;
 class CurlService
 {
     protected $baseUrl;
+    protected $rampUrl;
     protected $headers;
 
-    public function __construct($baseUrl, $token = null)
+    public function __construct($baseUrl, $token = null, $rampUrl)
     {
         $this->baseUrl = rtrim($baseUrl, '/');
+        $this->rampUrl = rtrim($rampUrl, '/');
         $this->headers = [
             "accept: application/json",
+            "x-private-key: kkkk",
         ];
 
         if ($token) {
@@ -19,12 +22,28 @@ class CurlService
         }
     }
 
+    // protected function buildUrl($endpoint)
+    // {
+    //     // Define which endpoints use ramp
+    //     $rampEndpoints = ['ramp/', 'ramp-auth/', 'ramp-orders/'];
+
+    //     foreach ($rampEndpoints as $prefix) {
+    //         if (str_contains($endpoint, $prefix)) {
+    //             return $this->rampUrl . "/{$endpoint}";
+    //         }
+    //     }
+
+    //     return $this->baseUrl . "/{$endpoint}";
+    // }
+
     protected function request($method, $endpoint, $data = [])
     {
         $curl = curl_init();
         \Log::info("{$this->baseUrl}/{$endpoint}");
         $options = [
-            CURLOPT_URL => "{$this->baseUrl}/{$endpoint}",
+            CURLOPT_URL => (str_contains($endpoint, 'ramp')
+                ? $this->rampUrl
+                : $this->baseUrl) . "/{$endpoint}",
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => "",
             CURLOPT_MAXREDIRS => 10,

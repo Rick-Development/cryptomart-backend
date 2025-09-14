@@ -7,17 +7,20 @@ use Illuminate\Support\Facades\Http;
 class QuidaxService
 {
     protected $baseUrl;
+    protected $rampUrl;
     protected $apiSecret;
     protected $curl;
 
     public function __construct()
     {
         $this->baseUrl = config('services.quidax.url');
+        $this->rampUrl = config('services.quidax.ramp_url');
         $this->apiSecret = config('services.quidax.secret');
 
         $this->curl = new CurlService(
             $this->baseUrl,
-            $this->apiSecret
+            $this->apiSecret,
+            $this->rampUrl
         );
     }
 
@@ -54,7 +57,7 @@ class QuidaxService
 
 
     public function createCryptoPaymentAddress($quidax_id,$currency,$data){
-          return $this->curl->post("v1/users/me/wallets/btc/addresses",$data);
+          return $this->curl->post("v1/users/{$quidax_id}/wallets/{$currency}/addresses",$data);
     }
 
     public function createSwapQuotation($quidax_id,$data){
@@ -75,8 +78,18 @@ class QuidaxService
         return $this->curl->get("v1/users/{$quidax_id}/withdraws/{$withdrawal_id}/cancel");
     }
 
-    public function initiate_ramp_transaction()
+    public function refresh_instant_swap_quotation($quidax_id, $quotation_id, $data)
     {
-        return $this->curl->get("v1/merchants/custodial/on_ramp_transactions/initiate");
+        return $this->curl->post("v1/users/{$quidax_id}/swap_quotation/{$quotation_id}/refresh", $data);
+    }
+
+    public function fetch_swap_transaction($quidax_id, $swap_transaction_id)
+    {
+        return $this->curl->get("v1/users/{$quidax_id}/swap_transactions/{$swap_transaction_id}");
+    }
+
+    public function initiate_ramp_transaction($data)
+    {
+        return $this->curl->post("v1/merchants/custodial/on_ramp_transactions/initiate", $data);
     }
 }

@@ -18,6 +18,7 @@ return [
         'secret' => env('QUIDAX_SECRET_KEY'),
         'private' => env('QUIDAX_PRIVATE_KEY'),
         'url' => env('QUIDAX_API_URL'),
+        'ramp_url' => env('QUIDAX_RAMP_URL')
     ],
 
 
