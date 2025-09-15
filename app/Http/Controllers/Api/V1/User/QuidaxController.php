@@ -160,6 +160,24 @@ class QuidaxController extends Controller
         // dd($response);
         return Response::success($response['message'], $response['data']);
     }
+
+    public function get_swap_transaction()
+    {
+        $response = $this->quidax->get_swap_transacdtion(auth()->user()->quidax_id);
+        return Response::success($response['message'], $response['data']);
+    }
+
+    public function temporary_swap_quotation(Request $request)
+    {
+        $data = [
+            'from_currency' => $request->from_currency,
+            'to_currency' => $request->to_currency,
+            'from_amount' => $request->from_amount
+        ];
+
+        $response = $this->quidax->temporary_swap_quotation(auth()->user()->quidax_id, $data);
+        return Response::success($response['message'], $response['data']);
+    }
     // createCryptoPaymentAddress($quidax_id,$currency,$data)
 
     // fetchPaymentAddress($quidax_id,$currency){

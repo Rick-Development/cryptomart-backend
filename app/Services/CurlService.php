@@ -14,7 +14,7 @@ class CurlService
         $this->rampUrl = rtrim($rampUrl, '/');
         $this->headers = [
             "accept: application/json",
-            "x-private-key: kkkk",
+            "x-private-key: J3Jz4fFfJgRe8xa1RDTCs06PhBbxzV3SGEN9g6SB",
         ];
 
         if ($token) {

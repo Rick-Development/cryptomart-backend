@@ -37,6 +37,8 @@ Route::prefix("user")->name("api.user.")->group(function () {
             Route::get('fetch-withdraws', "fetch_withdraws");
             Route::post('instant-swap-quotation', "refresh_instant_swap_quotation");
             Route::get('fetch-swap-transaction', "fetch_swap_transaction");
+            Route::get("get-swap-transaction", "get_swap_transaction");
+            Route::post('temporary-swap-quotaion', "temporary_swap_quotation");
 
             Route::prefix('ramp')->group(function () {
                 Route::post('initiate-ramp-transaction', "initiate_ramp_transaction");

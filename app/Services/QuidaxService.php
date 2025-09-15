@@ -60,14 +60,6 @@ class QuidaxService
           return $this->curl->post("v1/users/{$quidax_id}/wallets/{$currency}/addresses",$data);
     }
 
-    public function createSwapQuotation($quidax_id,$data){
-          return $this->curl->post("v1/users/{$quidax_id}/swap_quotation",$data);
-    }
-
-    public function swap($quidax_id,$quotation_id){
-          return $this->curl->post("v1/users/{$quidax_id}/swap_quotation/{$quotation_id}/confirm");
-    }
-
     public function fetch_withdraws($quidax_id, $currency, $status)
     {
         return $this->curl->get("v1/users/{$quidax_id}/withdraws?order_by=asc&currency={$currency}&state={$status}");
@@ -76,6 +68,14 @@ class QuidaxService
     public function cancel_withdrawal($withdrawal_id, $quidax_id)
     {
         return $this->curl->get("v1/users/{$quidax_id}/withdraws/{$withdrawal_id}/cancel");
+    }
+
+    public function createSwapQuotation($quidax_id,$data){
+          return $this->curl->post("v1/users/{$quidax_id}/swap_quotation",$data);
+    }
+
+    public function swap($quidax_id,$quotation_id){
+          return $this->curl->post("v1/users/{$quidax_id}/swap_quotation/{$quotation_id}/confirm");
     }
 
     public function refresh_instant_swap_quotation($quidax_id, $quotation_id, $data)
@@ -91,5 +91,15 @@ class QuidaxService
     public function initiate_ramp_transaction($data)
     {
         return $this->curl->post("v1/merchants/custodial/on_ramp_transactions/initiate", $data);
+    }
+
+    public function get_swap_transacdtion($quidax_id)
+    {
+        return $this->curl->get("v1/users/{$quidax_id}/swap_transactions");
+    }
+
+    public function temporary_swap_quotation($quidax_id, $data)
+    {
+        return $this->curl->post("v1/users/{$quidax_id}/temporary_swap_quotation", $data);
     }
 }
