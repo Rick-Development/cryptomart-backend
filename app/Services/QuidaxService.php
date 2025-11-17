@@ -8,6 +8,7 @@ class QuidaxService
 {
     protected $baseUrl;
     protected $rampUrl;
+    protected $p2pUrl;
     protected $apiSecret;
     protected $curl;
 
@@ -15,12 +16,14 @@ class QuidaxService
     {
         $this->baseUrl = config('services.quidax.url');
         $this->rampUrl = config('services.quidax.ramp_url');
+        $this->p2pUrl = config('services.quidax.p2p_url');
         $this->apiSecret = config('services.quidax.secret');
 
         $this->curl = new CurlService(
             $this->baseUrl,
             $this->apiSecret,
-            $this->rampUrl
+            $this->rampUrl,
+            $this->p2pUrl,
         );
     }
 
@@ -57,7 +60,7 @@ class QuidaxService
 
 
     public function createCryptoPaymentAddress($quidax_id,$currency,$data){
-          return $this->curl->post("v1/users/{$quidax_id}/wallets/{$currency}/addresses",$data);
+          return $this->curl->post("v1/users/{$quidax_id}/wallets/{$currency}/addresses?network={$data}");
     }
 
     public function fetch_withdraws($quidax_id, $currency, $status)
@@ -68,6 +71,11 @@ class QuidaxService
     public function cancel_withdrawal($withdrawal_id, $quidax_id)
     {
         return $this->curl->get("v1/users/{$quidax_id}/withdraws/{$withdrawal_id}/cancel");
+    }
+
+    public function create_withdrawal($quidax_id, $data)
+    {
+        return $this->curl->post("v1/users/$quidax_id/withdraws", $data);
     }
 
     public function createSwapQuotation($quidax_id,$data){
@@ -101,5 +109,25 @@ class QuidaxService
     public function temporary_swap_quotation($quidax_id, $data)
     {
         return $this->curl->post("v1/users/{$quidax_id}/temporary_swap_quotation", $data);
+    }
+
+    public function fetch_deposits($quidax_id, $currency, $state)
+    {
+        return $this->curl->get("v1/users/{$quidax_id}/deposits?currency={$currency}&state={$state}");
+    }
+
+    public function fetch_a_deposit($quidax_id, $deposit_id)
+    {
+        return $this->curl->get("v1/users/{$quidax_id}/deposits/{$deposit_id}");
+    }
+
+    public function get_all_public_adverts($data)
+    {
+        return $this->curl->get("v1/p2p/adverts", $data);
+    }
+
+    public function get_single_public_advert($advert_id)
+    {
+        return $this->curl->get("v1/p2p/adverts/{$advert_id}");
     }
 }

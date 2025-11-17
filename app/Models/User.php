@@ -7,10 +7,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\HasApiTokens;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
     protected $appends = ['fullname','userImage','stringStatus','lastLogin','kycStringStatus'];
     protected $dates = ['deleted_at'];
     /**
@@ -68,6 +69,10 @@ class User extends Authenticatable
         'quidax_sn'            => 'string',
         'quidax_display_name'  => 'string',
         'quidax_reference'     => 'string',
+        'payscribe_customer_id' => 'string',
+        'payscribe_tier' => 'string',
+        'payscribe_customer_phone' => 'string',
+        'payscribe_customer_country' => 'string',
     ];
 
     public function scopeEmailUnverified($query)
@@ -205,7 +210,7 @@ class User extends Authenticatable
     public function scopeNotAuth($query) {
         $query->whereNot("id",auth()->user()->id);
     }
-    
+
     public function wallets()
 {
     return $this->hasMany(UserWallet::class, 'user_id');

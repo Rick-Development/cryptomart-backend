@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api\V1\User;
 
 use App\Models\UserWallet;
 use App\Models\Transaction;
+use App\Models\Withdrawals;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Constants\GlobalConst;
 use App\Http\Helpers\Response;
@@ -57,11 +59,32 @@ class QuidaxController extends Controller
         $response = $this->quidax->fetchPaymentAddressses(auth()->user()->quidax_id, $request->currency);
         return Response::success($response['message'], $response['data']);
     }
+
     public function createCryptoPaymentAddress(Request $request)
     {
-        $response = $this->quidax->createCryptoPaymentAddress(auth()->user()->quidax_id, $request->currency, [
-            'network' => $request->network
+        $validator = \Validator::make($request->all(), [
+            'currency' => 'required',
+            'network' => 'required | string'
         ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'failed',
+                'message' => 'Validation failed',
+                'data' => $validator->errors()
+            ], 422);
+        }
+
+        $user = auth()->user()->quidax_id;
+        if (!$user) {
+            return response()->json([
+                'status' => 'Failed',
+                'message' => 'Unknown quidax id',
+                'data' => $user,
+            ]);
+        }
+
+        $response = $this->quidax->createCryptoPaymentAddress($user, $request->currency, $request->network);
         return Response::success($response['message'], $response['data']);
     }
     public function createSwapQuotation(Request $request)
@@ -95,8 +118,83 @@ class QuidaxController extends Controller
 
     public function cancel_withdrawal(Request $request)
     {
+        $validator = \Validator::make($request->all(), [
+            'withdrawal_id' => 'required | string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'failed',
+                'message' => 'validation failed',
+                'data' => $validator->errors()
+            ], 422);
+        }
+
         $response = $this->quidax->cancel_withdrawal(auth()->user()->quidax_id, $request->withdrawal_id);
         return Response::success($response['message'], $response['data']);
+    }
+
+    public function create_withdrawal(Request $request)
+    {
+        $validator = \Validator::make($request->all(), [
+            'currency' => 'required|string',
+            'amount' => 'required|string',
+            'fund_uid' => 'required|string',
+            'transaction_note' => 'required|string',
+            'narration' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'failed',
+                'message' => 'validation failed',
+                'data' => $validator->errors()
+            ], 422);
+        }
+
+        $data = $request->only([
+            'currency',
+            'amount',
+            'fund_uid',
+            'transaction_note',
+            'narration',
+        ]);
+
+        $referenceId = Str::uuid();
+        $refIdString = (string) $referenceId . '-auto_bill';
+        $data = array_merge($data, ['reference' => $refIdString]);
+
+        $quidax_id = auth()->user()->quidax_id;
+        if (is_null($quidax_id) || empty($quidax_id)) {
+            return Response::error([
+                'status' => 'failed',
+                'message' => 'Invalid quidax id',
+                'data' => [
+                    'Quidax id' => $quidax_id
+                ],
+            ]);
+        }
+
+        $response = $this->quidax->create_withdrawal(auth()->user()->quidax_id, $data);
+
+        if ($response && $response['status'] == "success") {
+            Withdrawals::create([
+                'user_id' => auth()->user()->id,
+                'reference' => $response['data']['reference'] ?? null,
+                'type' => $response['data']['type'] ?? null,
+                'currency' => $response['data']['currency'] ?? null,
+                'amount' => $response['data']['amount'] ?? null,
+                'fee' => $response['data']['fee'] ?? null,
+                'total' => $response['data']['total'] ?? null,
+                'trans_id' => $response['data']['txid'],
+                'transaction_note' => $response['data']['transaction_note'] ?? null,
+                'recipient_data' => $response['data']['recipient'] ?? null,
+                'wallet' => $response['data']['wallet'] ?? null,
+                'user' => $response['data']['user'] ?? null,
+            ]);
+        }
+
+        return Response::success($response);
     }
 
     public function initiate_ramp_transaction(Request $request)
@@ -131,10 +229,15 @@ class QuidaxController extends Controller
 
     public function refresh_instant_swap_quotation(Request $request)
     {
-        if (!$request->quotation_id) {
+        $validator = \Validator::make($request->all(), [
+            'quotation_id' => 'required | string',
+        ]);
+        if ($validator->fails()) {
             return response()->json([
-                'message' => 'quotation_id param required',
-            ]);
+                'status' => 'Failed',
+                'message' => 'Validation failed',
+                'data' => $validator->errors()
+            ], 422);
         }
 
         $data = [
@@ -181,5 +284,66 @@ class QuidaxController extends Controller
     // createCryptoPaymentAddress($quidax_id,$currency,$data)
 
     // fetchPaymentAddress($quidax_id,$currency){
+    public function fetch_deposits(Request $request)
+    {
+        $validator = \Validator::make($request->all(), [
+            'currency' => 'required | string',
+            'state' => 'required | string'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'failed',
+                'message' => 'validation failed',
+                'data' => $validator->errors()
+            ]);
+        }
+
+        $response = $this->quidax->fetch_deposits(auth()->user()->quidax_id, $request->currency, $request->state);
+        return Response::success($response['message'], $response['data']);
+    }
+
+    public function fetch_a_deposit(Request $request)
+    {
+        $validator = \Validator::make($request->all(), [
+            'deposit_id' => 'required | string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'failed',
+                'message' => 'validation failed',
+                'data' => $validator->errors()
+            ]);
+        }
+
+        $response = $this->quidax->fetch_a_deposit(auth()->user()->quidax_id, $request->deposit_id);
+        return Response::success($response['message'], $response['data']);
+    }
+
+    public function get_all_public_adverts(Request $request)
+    {
+        $data = $request->only('side');
+        $response = $this->quidax->get_all_public_adverts($data);
+        return Response::success($response['message'], $response['data']);
+    }
+
+    public function get_single_public_advert(Request $request)
+    {
+        $validator = \Validator::make($request->all(), [
+            'advert_id' => 'required | string'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'failed',
+                'message' => 'Validation failed',
+                'data' => $validator->errors()
+            ]);
+        }
+
+        $response = $this->quidax->get_single_public_advert($request->advert_id);
+        return Response::success($response['message'], $response['data']);
+    }
 
 }

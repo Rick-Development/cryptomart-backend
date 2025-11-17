@@ -9,11 +9,6 @@ use App\Http\Controllers\Api\V1\User\Auth\AuthorizationController;
 use App\Http\Controllers\Api\V1\User\Auth\ForgotPasswordController;
 
 // User Auth Routes
-// Route::middleware('auth:api')->post('logout', function (Request $request) {
-//     $request->user()->token()->revoke();
-
-//     return response()->json(['message' => 'Logged out successfully']);
-// });
 Route::middleware(['api.user.auth.guard'])->group(function () {
     Route::controller(RegisterController::class)->group(function () {
         Route::post("register", "register");
@@ -27,7 +22,7 @@ Route::middleware(['api.user.auth.guard'])->group(function () {
     Route::controller(ForgotPasswordController::class)->prefix("password/forgot")->group(function () {
         Route::post('find/user', 'findUserSendCode');
         Route::post('verify/code', 'verifyCode');
-        Route::get('resend/code', 'resendCode');
+        Route::post('resend/code', 'resendCode');
         Route::post('reset', 'resetPassword');
     });
 

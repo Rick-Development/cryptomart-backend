@@ -49,5 +49,10 @@ return [
         'client_secret' => env('FACEBOOK_CLIENT_SECRET',""),
         'redirect' => env('FACEBOOK_CALLBACK',""),
     ],
+    'payscribe' => [
+        'secret' => env('PAYSCRIBE_SECRET'),
+        'key' => env('PAYSCRIBE_PUBLIC_API'),
+        'api_url' => env('PAYSCRIBE_URL')
+    ],
 
 ];

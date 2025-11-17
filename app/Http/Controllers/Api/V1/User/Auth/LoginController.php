@@ -47,7 +47,7 @@ class LoginController extends Controller
      */
     public function login(Request $request)
     {
-        // dd($request->all());
+        \Log::info($request->all());
         $this->request_data = $request;
 
         $validator = Validator::make($request->all(), [
@@ -132,18 +132,28 @@ class LoginController extends Controller
     protected function authenticated(Request $request, $user, $token)
     {
         $basic_settings = BasicSettings::first();
+
+        // Reset 2FA flag
         $user->update([
             'two_factor_verified' => false,
         ]);
 
+        // Try refreshing wallets
         try {
             $this->refreshUserWallets($user);
         } catch (Exception $e) {
-            return Response::error([__('Login Failed! Failed to refresh wallet! Please try again')], [], 500);
+            return Response::error(
+                [__('Login Failed! Failed to refresh wallet! Please try again')],
+                [],
+                500
+            );
         }
+
+        // Log the login attempt
         $this->createLoginLog($user);
 
-        if ($basic_settings->email_verification == true && $user->email_verified == true) {
+        // 🔥 FIXED: Only send authorization code if verification is required AND user has NOT verified yet
+        if ($basic_settings->email_verification == true && $user->email_verified == false) {
             $auth_token = generate_unique_string("user_authorizations", "token", 200);
             $data = [
                 'user_id' => $user->id,
@@ -154,30 +164,47 @@ class LoginController extends Controller
 
             DB::beginTransaction();
             try {
+                // Remove old codes for this user
                 UserAuthorization::where("user_id", $user->id)->delete();
+
+                // Insert the new code/token
                 DB::table("user_authorizations")->insert($data);
+
+                // Try notifying user (fail silently but you may want to log it)
                 try {
                     $user->notify(new SendAuthorizationCode((object) $data));
                 } catch (Exception $e) {
+                    // log the error instead of swallowing silently
+                    \Log::warning("Authorization email failed for user {$user->id}: " . $e->getMessage());
                 }
+
                 DB::commit();
             } catch (Exception $e) {
                 DB::rollBack();
                 throw new Exception(__("Something went wrong! Please try again"));
             }
+
+            // User still needs to complete verification
             $status = false;
         } else {
+            // User is good to go (already verified or verification not required)
             $status = true;
             $auth_token = '';
         }
 
-        return Response::success([__('User successfully logged in')], [
-            'token' => $token,
-            'user_info' => UserResource::make($user),
-            'authorization' => [
-                'status' => $status,
-                'token' => $auth_token,
+        // Return the login response
+        return Response::success(
+            [__('User successfully logged in')],
+            [
+                'token' => $token,
+                'user_info' => UserResource::make($user),
+                'authorization' => [
+                    'status' => $status,
+                    'token' => $auth_token,
+                ],
             ],
-        ], 200);
+            200
+        );
     }
+
 }
