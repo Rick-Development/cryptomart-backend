@@ -196,7 +196,7 @@ return [
         App\Providers\RouteServiceProvider::class,
 
         // Image Intervention
-        Intervention\Image\ImageServiceProvider::class,
+        // Intervention\Image\ImageServiceProvider::class,
 
         // Convert Image to WEBP
         Buglinjo\LaravelWebp\WebpServiceProvider::class,
@@ -229,13 +229,13 @@ return [
     */
 
     'aliases' => Facade::defaultAliases()->merge([
-        'Image'     => Intervention\Image\Facades\Image::class,
+        // 'Image'     => Intervention\Image\Facades\Image::class,
         'Webp'      => Buglinjo\LaravelWebp\Facades\Webp::class,
         'Response'  => App\Http\Helpers\Response::class,
         'Agent'     => Jenssegers\Agent\Facades\Agent::class,
         'Excel'     => Maatwebsite\Excel\Facades\Excel::class,
         'Agent'     => Jenssegers\Agent\Facades\Agent::class,
-        'Paystack'  => Unicodeveloper\Paystack\Facades\Paystack::class,
+        // 'Paystack'  => Unicodeveloper\Paystack\Facades\Paystack::class,
     ])->toArray(),
 
 ];
