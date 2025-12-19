@@ -78,6 +78,7 @@ Route::prefix("user")->name("api.user.")->group(function () {
             // kyc
             Route::get('kyc-input-fields', 'getKycInputFields');
             Route::post('kyc-submit', 'KycSubmit')->middleware('app.mode');
+            Route::get('kyc/status', 'getKycStatus');
 
             //pin check
             Route::post('pin-check', 'pinCheck');

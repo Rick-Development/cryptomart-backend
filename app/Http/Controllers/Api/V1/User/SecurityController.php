@@ -7,11 +7,13 @@ use Illuminate\Http\Request;
 use App\Constants\GlobalConst;
 use App\Http\Helpers\Response;
 use App\Models\Admin\SetupKyc;
+use App\Models\UserKycData;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use App\Traits\ControlDynamicInputFields;
 use Illuminate\Support\Facades\Validator;
+use App\Services\YouVerifyService;
 
 class SecurityController extends Controller
 {
@@ -128,24 +130,40 @@ class SecurityController extends Controller
         $user = auth()->guard(get_auth_guard())->user();
         if($user->kyc_verified == GlobalConst::VERIFIED) return Response::warning([__('You are already KYC Verified User')],[],400);
 
-        $user_kyc_fields = SetupKyc::userKyc()->first()->fields ?? [];
-        $validation_rules = $this->generateValidationRules($user_kyc_fields);
+        $user_kyc_fields   = SetupKyc::userKyc()->first()->fields ?? [];
+        $validation_rules  = $this->generateValidationRules($user_kyc_fields);
 
-        $validated = Validator::make($request->all(),$validation_rules)->validate();
-        $get_values = $this->placeValueWithFields($user_kyc_fields,$validated);
+        $validated   = Validator::make($request->all(),$validation_rules)->validate();
+        $get_values  = $this->placeValueWithFields($user_kyc_fields,$validated);
 
         $create = [
-            'user_id'       => auth()->guard(get_auth_guard())->user()->id,
-            'data'          => json_encode($get_values),
-            'created_at'    => now(),
+            'user_id'    => $user->id,
+            'data'       => json_encode($get_values),
+            'created_at' => now(),
         ];
 
         DB::beginTransaction();
         try{
-            DB::table('user_kyc_data')->updateOrInsert(["user_id" => $user->id],$create);
+            // Store / update local KYC payload
+            DB::table('user_kyc_data')->updateOrInsert(["user_id" => $user->id], $create);
+
+            // Mark as pending while external verification runs
             $user->update([
-                'kyc_verified'  => GlobalConst::PENDING,
+                'kyc_verified' => GlobalConst::PENDING,
             ]);
+
+            // Kick off YouVerify ID verification
+            /** @var YouVerifyService $youVerify */
+            $youVerify = app(YouVerifyService::class);
+            $result    = $youVerify->startIdVerification($user, (array) $get_values);
+
+            UserKycData::where('user_id', $user->id)->update([
+                'provider'           => 'youverify',
+                'youverify_reference'=> $result['reference'] ?? null,
+                'youverify_status'   => $result['status'] ?? null,
+                'youverify_payload'  => $result['raw'] ?? null,
+            ]);
+
             DB::commit();
         }catch(Exception $e) {
             DB::rollBack();
@@ -157,6 +175,48 @@ class SecurityController extends Controller
         }
 
         return Response::success([__('KYC information successfully submitted')],[],200);
+    }
+
+    /**
+     * Get current KYC & YouVerify status for authenticated user
+     * @method GET
+     */
+    public function getKycStatus(YouVerifyService $youVerify)
+    {
+        $user = auth()->guard(get_auth_guard())->user();
+
+        $instructions = "0: Default, 1: Approved, 2: Pending, 3:Rejected";
+
+        $kycData = UserKycData::where('user_id', $user->id)->first();
+
+        // Optionally refresh status from YouVerify when we have a reference
+        if ($kycData && $kycData->youverify_reference) {
+            try {
+                $remote = $youVerify->getVerificationStatus($kycData->youverify_reference);
+
+                $kycData->youverify_status  = $remote['status'] ?? $kycData->youverify_status;
+                $kycData->youverify_payload = $remote['raw'] ?? $kycData->youverify_payload;
+                $kycData->save();
+
+                $internalStatus = $youVerify->mapStatusToInternal($kycData->youverify_status);
+                if (!is_null($internalStatus) && $internalStatus !== $user->kyc_verified) {
+                    $user->update(['kyc_verified' => $internalStatus]);
+                }
+            } catch (\Throwable $e) {
+                // Swallow provider errors here; frontend still sees last known status
+            }
+        }
+
+        return Response::success(
+            [__('KYC status fetched successfully')],
+            [
+                'instructions'      => $instructions,
+                'status'            => $user->kyc_verified,
+                'youverify_status'  => $kycData->youverify_status ?? null,
+                'youverify_reference' => $kycData->youverify_reference ?? null,
+            ],
+            200
+        );
     }
     /**
      * Method for check pin.

@@ -12,6 +12,12 @@ class UserKycData extends Model
     protected $guarded = ['id'];
 
     protected $casts = [
-        'data'      => 'object',
+        'data'              => 'object',
+        'youverify_payload' => 'array',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 }
