@@ -25,7 +25,6 @@ Route::get('/login', function () {
 })->name('login');
 
 // Savings (Piggyvest) Routes
-// Savings (Piggyvest) Routes
 Route::middleware('auth:api')->prefix('v1/savings')->group(function () {
     // Flex
     Route::prefix('flex')->group(function () {
@@ -57,4 +56,8 @@ Route::middleware('auth:api')->prefix('v1/savings')->group(function () {
 // KYC (YouVerify)
 Route::middleware('auth:api')->prefix('kyc')->group(function () {
     Route::post('initiate', [\App\Http\Controllers\Api\User\KycController::class, 'initiate']);
+    Route::get('status/{reference}', [\App\Http\Controllers\Api\User\KycController::class, 'status']);
 });
+
+// YouVerify Webhook
+Route::post('webhook/youverify', [\App\Http\Controllers\Api\User\WebhookController::class, 'handleYouVerify'])->name('webhook.youverify');
