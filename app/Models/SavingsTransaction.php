@@ -13,8 +13,10 @@ class SavingsTransaction extends Model
 
     protected $fillable = [
         'user_id',
-        'savings_id',
+        'savingsable_id',
+        'savingsable_type',
         'amount',
+        'balance_after',
         'type',
         'status',
         'source',
@@ -25,6 +27,12 @@ class SavingsTransaction extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+    
+    // Polymorphic relationship
+    public function savingsable()
+    {
+        return $this->morphTo();
     }
 
     // Relationship with user

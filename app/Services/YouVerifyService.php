@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Http\Client\RequestException;
+use Exception;
 
 class YouVerifyService
 {
@@ -16,8 +17,9 @@ class YouVerifyService
 
     public function __construct()
     {
-        $this->baseUrl   = rtrim(config('youverify.base_url'), '/');
-        $this->secretKey = config('youverify.secret_key');
+        // Try common config patterns, fall back to services config if needed
+        $this->baseUrl   = rtrim(config('youverify.base_url', config('services.youverify.base_url', 'https://api.youverify.co/v2/')), '/');
+        $this->secretKey = config('youverify.secret_key', config('services.youverify.key'));
         $this->endpoints = config('youverify.endpoints', []);
         $this->timeout   = (int) config('youverify.timeout', 30);
     }
@@ -29,29 +31,49 @@ class YouVerifyService
     {
         return Http::baseUrl($this->baseUrl)
             ->timeout($this->timeout)
-            ->withToken($this->secretKey)
+            ->withHeaders([
+                'token' => $this->secretKey,
+                'Content-Type' => 'application/json',
+            ])
             ->acceptJson();
     }
 
     /**
-     * Start an ID verification with YouVerify.
-     *
-     * NOTE: The payload structure MUST match YouVerify's current API spec.
-     * This method prepares a reasonable default from your dynamic KYC data,
-     * but you should adapt the field mapping after confirming with docs.
-     *
-     * @param \App\Models\User $user
-     * @param array $kycValues  The structured values from your dynamic KYC form.
-     * @return array            Standardised result: ['reference' => string, 'status' => string, 'raw' => array]
-     *
-     * @throws \Illuminate\Http\Client\RequestException
+     * Initiate a standard vForms identity verification workflow.
+     */
+    public function initiateWorkflow($payload)
+    {
+        try {
+            // Updated endpoint to common YouVerify vForms pattern
+            $response = $this->client()->post('identity/vforms/initiate', $payload);
+
+            if ($response->successful()) {
+                return $response->json();
+            }
+
+            throw new Exception("YouVerify Error: " . $response->status() . " - " . $response->body());
+        } catch (Exception $e) {
+            throw $e;
+        }
+    }
+
+    /**
+     * Verify Webhook Signature (HMAC SHA256)
+     */
+    public function verifyWebhookSignature($signature, $payload)
+    {
+        $secret = $this->secretKey;
+        $expected = hash_hmac('sha256', json_encode($payload), $secret);
+        return hash_equals($expected, $signature);
+    }
+
+    /**
+     * Start an ID verification with YouVerify (Legacy/Direct).
      */
     public function startIdVerification(User $user, array $kycValues): array
     {
         $reference = 'yv-' . $user->id . '-' . now()->timestamp;
 
-        // Map your dynamic KYC fields into YouVerify payload fields.
-        // Adjust these keys to your actual SetupKyc field names.
         $payload = [
             'reference' => $reference,
             'country'   => Arr::get($kycValues, 'country_code', 'NG'),
@@ -61,7 +83,6 @@ class YouVerifyService
             'last_name'  => Arr::get($kycValues, 'last_name', $user->lastname ?? null),
             'date_of_birth' => Arr::get($kycValues, 'date_of_birth'),
             'phone'     => Arr::get($kycValues, 'phone', $user->phone ?? null),
-            // Optional images if your KYC form collects them as base64 strings or URLs
             'images'    => [
                 'selfie'   => Arr::get($kycValues, 'selfie_image'),
                 'id_front' => Arr::get($kycValues, 'id_image_front'),
@@ -71,8 +92,8 @@ class YouVerifyService
         ];
 
         $response = $this->client()
-            ->post($this->endpoints['start_id_verification'] ?? '/v2/identity/id-verification', $payload)
-            ->throw(); // throws RequestException on HTTP error
+            ->post($this->endpoints['start_id_verification'] ?? '/ identity/id-verification', $payload)
+            ->throw();
 
         $body   = $response->json();
         $status = Arr::get($body, 'data.status', Arr::get($body, 'status', 'pending'));
@@ -84,17 +105,9 @@ class YouVerifyService
         ];
     }
 
-    /**
-     * Fetch the latest verification status from YouVerify for a given reference.
-     *
-     * @param string $reference
-     * @return array ['status' => string, 'raw' => array]
-     *
-     * @throws \Illuminate\Http\Client\RequestException
-     */
     public function getVerificationStatus(string $reference): array
     {
-        $path = rtrim($this->endpoints['get_verification_status'] ?? '/v2/identity/verifications', '/')
+        $path = rtrim($this->endpoints['get_verification_status'] ?? 'identity/verifications', '/')
             . '/' . $reference;
 
         $response = $this->client()
@@ -109,26 +122,4 @@ class YouVerifyService
             'raw'    => $body,
         ];
     }
-
-    /**
-     * Map a YouVerify status string into your internal GlobalConst status.
-     *
-     * @param string $providerStatus
-     * @return int|null
-     */
-    public function mapStatusToInternal(string $providerStatus): ?int
-    {
-        $providerStatus = strtolower($providerStatus);
-
-        // Adjust mapping to match your business logic if needed
-        return match ($providerStatus) {
-            'approved', 'completed', 'success' => \App\Constants\GlobalConst::APPROVED,
-            'pending', 'in_progress'           => \App\Constants\GlobalConst::PENDING,
-            'rejected', 'failed'               => \App\Constants\GlobalConst::REJECTED,
-            default                            => null,
-        };
-    }
 }
-
-
-

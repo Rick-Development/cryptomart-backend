@@ -212,8 +212,13 @@ class User extends Authenticatable
     }
 
     public function wallets()
-{
-    return $this->hasMany(UserWallet::class, 'user_id');
-}
+    {
+        return $this->hasMany(UserWallet::class, 'user_id');
+    }
+
+    public function biometricDevices()
+    {
+        return $this->hasMany(UserBiometricDevice::class);
+    }
 
 }
