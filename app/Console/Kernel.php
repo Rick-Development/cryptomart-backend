@@ -15,7 +15,11 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')->hourly();
+        // Interest calculation - Daily at Midnight
+        $schedule->command('savings:process-interest')->daily();
+
+        // Target Auto-Save - Daily (the service handles internal frequency check)
+        $schedule->command('savings:auto-save')->daily();
     }
 
     /**

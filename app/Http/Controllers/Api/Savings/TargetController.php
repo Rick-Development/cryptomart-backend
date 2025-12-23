@@ -135,7 +135,16 @@ class TargetController extends Controller
         }
 
         // 2. Transact
-        $wallet->balance += $target->current_balance;
+        $amountToReturn = $target->current_balance;
+        $penalty = 0;
+
+        // Penalty Logic: If broken before target date, charge 2%
+        if ($target->target_date && $target->target_date->isFuture()) {
+            $penalty = $target->current_balance * 0.02;
+            $amountToReturn -= $penalty;
+        }
+
+        $wallet->balance += $amountToReturn;
         $wallet->save();
 
         $target->status = 'broken';
@@ -146,15 +155,15 @@ class TargetController extends Controller
             'user_id' => $user->id,
             'savingsable_id' => $target->id,
             'savingsable_type' => TargetSavings::class,
-            'amount' => $target->current_balance,
+            'amount' => $amountToReturn,
             'balance_after' => 0,
             'type' => 'withdrawal',
             'status' => 'success',
             'source' => 'target',
-            'narration' => 'Target Savings Broken (Funds Returned)'
+            'narration' => 'Target Savings Broken (Funds Returned)' . ($penalty > 0 ? " - 2% Penalty Applied: $penalty" : "")
         ]);
 
-        return Response::success(['message' => 'Target savings broken successfully. Funds returned to wallet.']);
+        return Response::success(['message' => 'Target savings broken successfully.' . ($penalty > 0 ? " A 2% early withdrawal penalty of $penalty was applied." : " Principal returned to wallet.")]);
     }
 
     /**

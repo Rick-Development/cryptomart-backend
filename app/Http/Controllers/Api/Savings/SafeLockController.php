@@ -133,9 +133,17 @@ class SafeLockController extends Controller
             return Response::error(['NGN Wallet not found']);
         }
 
-        // Penalty Logic: Forfeit all interest, return only principal
         // 2. Transact
-        $wallet->balance += $lock->amount;
+        $amountToReturn = $lock->amount;
+        $penalty = 0;
+
+        // SafeLock Penalty: If broken before maturity, forfeit interest + 1% admin fee
+        if ($lock->maturity_date && $lock->maturity_date->isFuture()) {
+            $penalty = $lock->amount * 0.01;
+            $amountToReturn -= $penalty;
+        }
+
+        $wallet->balance += $amountToReturn;
         $wallet->save();
 
         $lock->status = 'broken';
@@ -146,15 +154,15 @@ class SafeLockController extends Controller
             'user_id' => $user->id,
             'savingsable_id' => $lock->id,
             'savingsable_type' => SafeLock::class,
-            'amount' => $lock->amount,
+            'amount' => $amountToReturn,
             'balance_after' => 0,
             'type' => 'withdrawal',
             'status' => 'success',
             'source' => 'safelock',
-            'narration' => 'SafeLock Broken (Early Withdrawal)'
+            'narration' => 'SafeLock Broken (Early Withdrawal)' . ($penalty > 0 ? " - Interest Forfeited & 1% Penalty Applied: $penalty" : "")
         ]);
 
-        return Response::success(['message' => 'SafeLock broken successfully. Principal returned to wallet.']);
+        return Response::success(['message' => 'SafeLock broken successfully. ' . ($penalty > 0 ? "Interest forfeited and a 1% penalty of $penalty was applied." : "Funds returned to wallet.")]);
     }
 
     /**

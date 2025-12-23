@@ -99,8 +99,24 @@ class FlexController extends Controller
             return Response::error(['NGN Wallet not found']);
         }
 
+        // Limit Logic: 4 free withdrawals per quarter
+        $quarterStart = now()->startOfQuarter();
+        $withdrawalCount = SavingsTransaction::where('user_id', $user->id)
+            ->where('savingsable_type', FlexSavings::class)
+            ->where('type', 'withdrawal')
+            ->where('created_at', '>=', $quarterStart)
+            ->count();
+
+        $penaltyFee = 0;
+        if ($withdrawalCount >= 4) {
+             $penaltyFee = 100; // Flat 100 NGN fee
+             if ($flex->balance < ($amount + $penaltyFee)) {
+                 return Response::error(["Withdrawal limit reached. Additional withdrawals cost 100 NGN. Insufficient balance for fee."]);
+             }
+        }
+
         // 2. Transact
-        $flex->balance -= $amount;
+        $flex->balance -= ($amount + $penaltyFee);
         $flex->save();
 
         $wallet->balance += $amount;
@@ -116,10 +132,13 @@ class FlexController extends Controller
             'type' => 'withdrawal',
             'status' => 'success',
             'source' => 'flex',
-            'narration' => 'Flex Savings Withdrawal'
+            'narration' => 'Flex Savings Withdrawal' . ($penaltyFee > 0 ? " - Limit Fee Applied: $penaltyFee" : "")
         ]);
 
-        return Response::success(['message' => 'Withdrawal successful', 'balance' => $flex->balance]);
+        return Response::success([
+            'message' => 'Withdrawal successful' . ($penaltyFee > 0 ? " (Fee of $penaltyFee applied)" : ""),
+            'balance' => $flex->balance
+        ]);
     }
 
     /**
