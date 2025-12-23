@@ -290,6 +290,16 @@
                                         'route'     => "admin.setup.email.config",
                                     ]
                                 ],
+                            ],
+                            [
+                                'title'     => "YouVerify Config",
+                                'icon'      => "menu-icon las la-id-card",
+                                'links'     => [
+                                    [
+                                        'title'     => "Setup Keys",
+                                        'route'     => "admin.web.settings.basic.settings",
+                                    ]
+                                ],
                             ]
                         ],
                     ]
