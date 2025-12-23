@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Api\User;
 use App\Http\Controllers\Controller;
 use App\Http\Helpers\Response;
 use App\Services\YouVerifyService;
+use App\Models\KycVerification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 
 class KycController extends Controller
 {
@@ -18,8 +20,7 @@ class KycController extends Controller
     }
 
     /**
-     * Initiate KYC Verification Workflow.
-     * Returns payload for Mobile SDK initialization.
+     * Initiate KYC Verification Workflow using YouVerify vForms.
      */
     public function initiate(Request $request)
     {
@@ -28,45 +29,74 @@ class KycController extends Controller
             'last_name'  => 'required|string',
             'email'      => 'required|email',
             'dob'        => 'required|date',
+            'vform_id'   => 'required|string', // The specific workflow ID from YouVerify dashboard
         ]);
 
         if ($validator->fails()) {
-            return Response::error($validator->errors());
+            return Response::error($validator->errors()->all());
         }
 
         try {
             $user = auth()->user();
-            
-            // Prepare payload for YouVerify SDK/Workflow
+            $reference = 'KYC_' . $user->id . '_' . time();
+
+            // 1. Prepare payload for YouVerify vForms
             $payload = [
+                'vFormId'   => $request->vform_id,
                 'firstName' => $request->first_name,
                 'lastName'  => $request->last_name,
-                'email'     => $request->email, // Ensure email matches user account
-                'dob'       => $request->dob,
+                'email'     => $request->email,
                 'metadata'  => [
                     'user_id' => $user->id,
-                    'ref'     => 'KYC_' . $user->id . '_' . time() 
+                    'reference' => $reference
                 ]
             ];
 
-            // In a real integration, this might return a transaction reference or SDK token
-            $sdkPayload = $this->youVerifyService->initialteWorkflow($payload);
+            // 2. Call YouVerify
+            $result = $this->youVerifyService->initiateWorkflow($payload);
 
-            return Response::success([
-                'message' => 'KYC initiated successfully',
-                'sdk_payload' => $sdkPayload,
-                'reference' => $payload['metadata']['ref']
-            ]);
+            if (isset($result['status']) && $result['status'] === 'success') {
+                $data = $result['data'] ?? [];
+                
+                // 3. Log verification attempt
+                KycVerification::create([
+                    'user_id' => $user->id,
+                    'reference' => $reference,
+                    'transaction_id' => $data['id'] ?? null,
+                    'status' => 'pending',
+                ]);
+
+                return Response::success([
+                    'message' => 'KYC initiated successfully',
+                    'url' => $data['url'] ?? null,
+                    'reference' => $reference
+                ]);
+            }
+
+            return Response::error(['Failed to initiate KYC with YouVerify']);
 
         } catch (\Exception $e) {
+            Log::error("KYC Initiation Error: " . $e->getMessage());
             return Response::error(['error' => 'Failed to initiate KYC: ' . $e->getMessage()]);
         }
     }
 
     /**
-     * Webhook or Callback to update status (optional if handled via WebhookController)
+     * Poll status of a specific KYC verification if needed.
      */
-    public function status(Request $request) {
-       // Logic to check status manually if needed
+    public function status($reference)
+    {
+        $verification = KycVerification::where('reference', $reference)
+            ->where('user_id', auth()->id())
+            ->first();
+
+        if (!$verification) {
+            return Response::error(['Verification not found']);
+        }
+
+        return Response::success([
+            'status' => $verification->status,
+            'details' => $verification->data
+        ]);
     }
 }
