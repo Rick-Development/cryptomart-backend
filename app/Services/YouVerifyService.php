@@ -13,6 +13,8 @@ class YouVerifyService
 {
     protected string $baseUrl;
     protected ?string $secretKey;
+    protected ?string $publicKey;
+    protected ?string $webhookKey;
     protected array $endpoints;
     protected int $timeout;
 
@@ -21,12 +23,17 @@ class YouVerifyService
         // Try common config patterns, fall back to services config if needed
         $configUrl = config('youverify.base_url', config('services.youverify.base_url', 'https://api.youverify.co/v2/'));
         $configKey = config('youverify.secret_key', config('services.youverify.key'));
+        $configPublicKey = config('youverify.public_key', config('services.youverify.public_key'));
+        $configWebhookKey = config('youverify.webhook_key', config('services.youverify.webhook_key'));
 
         // Check for Admin Override in database
         $basicSettings = BasicSettings::first();
         
         $this->baseUrl   = rtrim($configUrl, '/');
         $this->secretKey = ($basicSettings && $basicSettings->youverify_key) ? $basicSettings->youverify_key : $configKey;
+        $this->publicKey = ($basicSettings && $basicSettings->youverify_public_key) ? $basicSettings->youverify_public_key : $configPublicKey;
+        $this->webhookKey = ($basicSettings && $basicSettings->youverify_webhook_key) ? $basicSettings->youverify_webhook_key : $configWebhookKey;
+        
         $this->endpoints = config('youverify.endpoints', []);
         $this->timeout   = (int) config('youverify.timeout', 30);
     }
@@ -69,7 +76,7 @@ class YouVerifyService
      */
     public function verifyWebhookSignature($signature, $payload)
     {
-        $secret = $this->secretKey;
+        $secret = $this->webhookKey; // Use the dedicated webhook key
         $expected = hash_hmac('sha256', json_encode($payload), $secret);
         return hash_equals($expected, $signature);
     }

@@ -57,7 +57,9 @@ return [
 
     'youverify' => [
         'base_url' => 'https://api.youverify.co/v2/',
-        'key' => 'KfjLuNhj.CnNSPnbzyo8m4G53qJi5xSMaf0ak6rmY5B0u', // Hardcoded as requested
+        'key' => 'KfjLuNhj.CnNSPnbzyo8m4G53qJi5xSMaf0ak6rmY5B0u',
+        'public_key' => '690b581fffda175b2b2a21d8',
+        'webhook_key' => '6yNnWj0jXq7VwVujOdHKeISVTSJzadVD2ah9',
     ],
 
 ];

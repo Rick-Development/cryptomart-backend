@@ -42,6 +42,8 @@ class WebSettingsController extends Controller
             'timezone'          => 'required|string',
             'web_version'       => 'required|string',
             'youverify_key'     => 'nullable|string',
+            'youverify_public_key'  => 'nullable|string',
+            'youverify_webhook_key' => 'nullable|string',
         ]);
 
         $validated = $validator->validate();

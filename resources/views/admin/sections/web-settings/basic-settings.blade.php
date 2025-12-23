@@ -78,7 +78,7 @@
                             <option selected disabled>{{ __("Select Timezone") }}</option>
                         </select>
                     </div>
-                    <div class="col-xl-12 col-lg-12 form-group">
+                    <div class="col-xl-4 col-lg-4 form-group">
                         @include('admin.components.form.input',[
                             'label'         => __("YouVerify API Key")."*",
                             'type'          => "text",
@@ -86,6 +86,26 @@
                             'placeholder'   => __("Write Here")."...",
                             'name'          => "youverify_key",
                             'value'         => old('youverify_key',$basic_settings->youverify_key),
+                        ])
+                    </div>
+                    <div class="col-xl-4 col-lg-4 form-group">
+                        @include('admin.components.form.input',[
+                            'label'         => __("YouVerify Public Key")."*",
+                            'type'          => "text",
+                            'class'         => "form--control",
+                            'placeholder'   => __("Write Here")."...",
+                            'name'          => "youverify_public_key",
+                            'value'         => old('youverify_public_key',$basic_settings->youverify_public_key),
+                        ])
+                    </div>
+                    <div class="col-xl-4 col-lg-4 form-group">
+                        @include('admin.components.form.input',[
+                            'label'         => __("YouVerify Webhook Secret")."*",
+                            'type'          => "text",
+                            'class'         => "form--control",
+                            'placeholder'   => __("Write Here")."...",
+                            'name'          => "youverify_webhook_key",
+                            'value'         => old('youverify_webhook_key',$basic_settings->youverify_webhook_key),
                         ])
                     </div>
                 </div>
