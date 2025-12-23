@@ -1,0 +1,63 @@
+{
+	"info": {
+		"name": "KYC API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Initiate Verification",
+			"request": {
+				"method": "POST",
+				"header": [
+					{ "key": "Accept", "value": "application/json" },
+					{ "key": "Authorization", "value": "Bearer {{token}}" }
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"first_name\": \"John\",\n    \"last_name\": \"Doe\",\n    \"email\": \"john@example.com\",\n    \"dob\": \"1990-01-01\",\n    \"vform_id\": \"vform_123\"\n}",
+					"options": { "raw": { "language": "json" } }
+				},
+				"url": {
+					"raw": "{{base_url}}/api/kyc/initiate",
+					"host": ["{{base_url}}"],
+					"path": ["api", "kyc", "initiate"]
+				}
+			}
+		},
+		{
+			"name": "Check Verification Status",
+			"request": {
+				"method": "GET",
+				"header": [
+					{ "key": "Accept", "value": "application/json" },
+					{ "key": "Authorization", "value": "Bearer {{token}}" }
+				],
+				"url": {
+					"raw": "{{base_url}}/api/kyc/status",
+					"host": ["{{base_url}}"],
+					"path": ["api", "kyc", "status"]
+				}
+			}
+		},
+		{
+			"name": "Sample Webhook (Local Test)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{ "key": "Accept", "value": "application/json" },
+					{ "key": "x-youverify-signature", "value": "sample_sig" }
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"event\": \"identity_verification.completed\",\n    \"data\": {\n        \"id\": \"vform_tx_123\",\n        \"status\": \"SUCCESS\"\n    }\n}",
+					"options": { "raw": { "language": "json" } }
+				},
+				"url": {
+					"raw": "{{base_url}}/api/kyc/webhook",
+					"host": ["{{base_url}}"],
+					"path": ["api", "kyc", "webhook"]
+				}
+			}
+		}
+	]
+}
