@@ -78,6 +78,16 @@
                             <option selected disabled>{{ __("Select Timezone") }}</option>
                         </select>
                     </div>
+                    <div class="col-xl-12 col-lg-12 form-group">
+                        @include('admin.components.form.input',[
+                            'label'         => __("YouVerify API Key")."*",
+                            'type'          => "text",
+                            'class'         => "form--control",
+                            'placeholder'   => __("Write Here")."...",
+                            'name'          => "youverify_key",
+                            'value'         => old('youverify_key',$basic_settings->youverify_key),
+                        ])
+                    </div>
                 </div>
                 <div class="col-xl-12 col-lg-12">
                     @include('admin.components.button.form-btn',[

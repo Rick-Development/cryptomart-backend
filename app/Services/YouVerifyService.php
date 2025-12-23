@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\User;
+use App\Models\Admin\BasicSettings;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Http\Client\RequestException;
@@ -18,8 +19,14 @@ class YouVerifyService
     public function __construct()
     {
         // Try common config patterns, fall back to services config if needed
-        $this->baseUrl   = rtrim(config('youverify.base_url', config('services.youverify.base_url', 'https://api.youverify.co/v2/')), '/');
-        $this->secretKey = config('youverify.secret_key', config('services.youverify.key'));
+        $configUrl = config('youverify.base_url', config('services.youverify.base_url', 'https://api.youverify.co/v2/'));
+        $configKey = config('youverify.secret_key', config('services.youverify.key'));
+
+        // Check for Admin Override in database
+        $basicSettings = BasicSettings::first();
+        
+        $this->baseUrl   = rtrim($configUrl, '/');
+        $this->secretKey = ($basicSettings && $basicSettings->youverify_key) ? $basicSettings->youverify_key : $configKey;
         $this->endpoints = config('youverify.endpoints', []);
         $this->timeout   = (int) config('youverify.timeout', 30);
     }

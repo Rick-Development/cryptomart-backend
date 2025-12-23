@@ -55,4 +55,9 @@ return [
         'api_url' => env('PAYSCRIBE_URL')
     ],
 
+    'youverify' => [
+        'base_url' => 'https://api.youverify.co/v2/',
+        'key' => 'KfjLuNhj.CnNSPnbzyo8m4G53qJi5xSMaf0ak6rmY5B0u', // Hardcoded as requested
+    ],
+
 ];

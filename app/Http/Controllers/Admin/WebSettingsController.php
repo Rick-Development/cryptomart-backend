@@ -41,6 +41,7 @@ class WebSettingsController extends Controller
             'otp_exp_seconds'   => 'required|string',
             'timezone'          => 'required|string',
             'web_version'       => 'required|string',
+            'youverify_key'     => 'nullable|string',
         ]);
 
         $validated = $validator->validate();
