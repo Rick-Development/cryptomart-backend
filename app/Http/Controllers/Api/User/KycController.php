@@ -51,7 +51,7 @@ class KycController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'bvn' => 'required|string|size:11',
-            'selfie' => 'required|string', // Expecting base64 image
+            'selfie' => 'required|image|mimes:jpeg,png,jpg|max:5120', // Accept image file
         ]);
 
         if ($validator->fails()) {
@@ -64,7 +64,14 @@ class KycController extends Controller
                 return Response::error(['You are already at Tier 1 or higher']);
             }
 
-            $result = $this->youVerifyService->verifyBvn($request->bvn, $request->selfie);
+            // Convert uploaded image to base64 for YouVerify
+            $selfieBase64 = null;
+            if ($request->hasFile('selfie')) {
+                $image = $request->file('selfie');
+                $selfieBase64 = base64_encode(file_get_contents($image->getRealPath()));
+            }
+
+            $result = $this->youVerifyService->verifyBvn($request->bvn, $selfieBase64);
 
             if (isset($result['status']) && ($result['status'] === 'success' || $result['status'] === 'pending')) {
                 $transactionId = $result['data']['id'] ?? null;
@@ -254,7 +261,7 @@ class KycController extends Controller
             'city' => 'required|string',
             'state' => 'required|string',
             'postcode' => 'nullable|string',
-            'document' => 'required|string', // Base64 proof of address
+            'document' => 'required|image|mimes:jpeg,png,jpg,pdf|max:10240', // Accept image/pdf file
         ]);
 
         if ($validator->fails()) {
@@ -270,6 +277,12 @@ class KycController extends Controller
                 return Response::error(['You are already at Tier 3']);
             }
 
+            $documentBase64 = null;
+            if ($request->hasFile('document')) {
+                $file = $request->file('document');
+                $documentBase64 = base64_encode(file_get_contents($file->getRealPath()));
+            }
+
             $payload = [
                 'firstName' => $user->firstname,
                 'lastName' => $user->lastname,
@@ -281,7 +294,7 @@ class KycController extends Controller
                 ],
                 'document' => [
                     'type' => 'UTILITY_BILL',
-                    'content' => $request->document
+                    'content' => $documentBase64
                 ]
             ];
 
