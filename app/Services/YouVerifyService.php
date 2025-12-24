@@ -53,12 +53,86 @@ class YouVerifyService
     }
 
     /**
+     * Verify BVN with Face Match (Tier 1)
+     */
+    public function verifyBvn(string $bvn, ?string $selfieImage = null)
+    {
+        $payload = [
+            'id' => $bvn,
+            'isSubjectConsent' => true,
+        ];
+
+        if ($selfieImage) {
+            $payload['validations'] = [
+                'selfie' => [
+                    'image' => $selfieImage // Should be base64
+                ]
+            ];
+        }
+
+        try {
+            $response = $this->client()->post('identity/ng/bvn', $payload);
+            return $response->json();
+        } catch (Exception $e) {
+            throw $e;
+        }
+    }
+
+    /**
+     * Verify NIN (Tier 2)
+     */
+    public function verifyNin(string $nin)
+    {
+        $payload = [
+            'id' => $nin,
+            'isSubjectConsent' => true,
+        ];
+
+        try {
+            $response = $this->client()->post('identity/ng/nin', $payload);
+            return $response->json();
+        } catch (Exception $e) {
+            throw $e;
+        }
+    }
+
+    /**
+     * Submit OTP for ID verification
+     */
+    public function submitOtp(string $transactionId, string $otp)
+    {
+        $payload = [
+            'transactionId' => $transactionId,
+            'otp' => $otp,
+        ];
+
+        try {
+            $response = $this->client()->post('identity/otp/verify', $payload);
+            return $response->json();
+        } catch (Exception $e) {
+            throw $e;
+        }
+    }
+
+    /**
+     * Verify Address (Tier 3)
+     */
+    public function verifyAddress(array $data)
+    {
+        try {
+            $response = $this->client()->post('identity/address-verification', $data);
+            return $response->json();
+        } catch (Exception $e) {
+            throw $e;
+        }
+    }
+
+    /**
      * Initiate a standard vForms identity verification workflow.
      */
     public function initiateWorkflow($payload)
     {
         try {
-            // Updated endpoint to common YouVerify vForms pattern
             $response = $this->client()->post('identity/vforms/initiate', $payload);
 
             if ($response->successful()) {
@@ -76,47 +150,9 @@ class YouVerifyService
      */
     public function verifyWebhookSignature($signature, $payload)
     {
-        $secret = $this->webhookKey; // Use the dedicated webhook key
+        $secret = $this->webhookKey;
         $expected = hash_hmac('sha256', json_encode($payload), $secret);
         return hash_equals($expected, $signature);
-    }
-
-    /**
-     * Start an ID verification with YouVerify (Legacy/Direct).
-     */
-    public function startIdVerification(User $user, array $kycValues): array
-    {
-        $reference = 'yv-' . $user->id . '-' . now()->timestamp;
-
-        $payload = [
-            'reference' => $reference,
-            'country'   => Arr::get($kycValues, 'country_code', 'NG'),
-            'id_type'   => Arr::get($kycValues, 'id_type', 'nin'),
-            'id_number' => Arr::get($kycValues, 'id_number'),
-            'first_name' => Arr::get($kycValues, 'first_name', $user->firstname ?? $user->name ?? null),
-            'last_name'  => Arr::get($kycValues, 'last_name', $user->lastname ?? null),
-            'date_of_birth' => Arr::get($kycValues, 'date_of_birth'),
-            'phone'     => Arr::get($kycValues, 'phone', $user->phone ?? null),
-            'images'    => [
-                'selfie'   => Arr::get($kycValues, 'selfie_image'),
-                'id_front' => Arr::get($kycValues, 'id_image_front'),
-                'id_back'  => Arr::get($kycValues, 'id_image_back'),
-            ],
-            'callback_url' => route('webhook.youverify'),
-        ];
-
-        $response = $this->client()
-            ->post($this->endpoints['start_id_verification'] ?? '/ identity/id-verification', $payload)
-            ->throw();
-
-        $body   = $response->json();
-        $status = Arr::get($body, 'data.status', Arr::get($body, 'status', 'pending'));
-
-        return [
-            'reference' => $reference,
-            'status'    => $status,
-            'raw'       => $body,
-        ];
     }
 
     public function getVerificationStatus(string $reference): array

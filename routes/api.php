@@ -40,7 +40,6 @@ Route::middleware('auth:api')->prefix('v1/savings')->group(function () {
         Route::get('plans', [\App\Http\Controllers\Api\Savings\SafeLockController::class, 'plans']);
         Route::post('create', [\App\Http\Controllers\Api\Savings\SafeLockController::class, 'create']);
         Route::post('break', [\App\Http\Controllers\Api\Savings\SafeLockController::class, 'break']);
-        // Route::get('history', [\App\Http\Controllers\Api\Savings\SafeLockController::class, 'history']); 
     });
 
     // Target Savings
@@ -57,8 +56,17 @@ Route::middleware('auth:api')->prefix('v1/savings')->group(function () {
 Route::middleware('auth:api')->prefix('kyc')->group(function () {
     Route::get('user-tier', [\App\Http\Controllers\Api\User\KycController::class, 'userTier']);
     Route::get('tiers', [\App\Http\Controllers\Api\User\KycController::class, 'tiers']);
-    Route::post('initiate', [\App\Http\Controllers\Api\User\KycController::class, 'initiate']);
-    Route::get('status/{reference}', [\App\Http\Controllers\Api\User\KycController::class, 'status']);
+    
+    // Tier 1
+    Route::post('tier1/initiate', [\App\Http\Controllers\Api\User\KycController::class, 'tier1Initiate']);
+    Route::post('tier1/verify', [\App\Http\Controllers\Api\User\KycController::class, 'tier1Verify']);
+
+    // Tier 2
+    Route::post('tier2/initiate', [\App\Http\Controllers\Api\User\KycController::class, 'tier2Initiate']);
+    Route::post('tier2/verify', [\App\Http\Controllers\Api\User\KycController::class, 'tier2Verify']);
+
+    // Tier 3
+    Route::post('tier3/submit', [\App\Http\Controllers\Api\User\KycController::class, 'tier3Submit']);
 });
 
 // YouVerify Webhook
