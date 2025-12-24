@@ -298,6 +298,10 @@
                                     [
                                         'title'     => "Setup Keys",
                                         'route'     => "admin.web.settings.basic.settings",
+                                    ],
+                                    [
+                                        'title'     => "KYC Tiers",
+                                        'route'     => "admin.kyc.tiers.index",
                                     ]
                                 ],
                             ]

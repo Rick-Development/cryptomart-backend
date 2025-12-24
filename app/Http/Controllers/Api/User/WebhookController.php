@@ -32,7 +32,6 @@ class WebhookController extends Controller
         if (!$this->youVerifyService->verifyWebhookSignature($signature, $payload)) {
             Log::warning("YouVerify Webhook Signature Mismatch");
             // return response()->json(['message' => 'Invalid signature'], 401); 
-            // Note: During initial testing, you might want into bypass this if signature headers aren't clear
         }
 
         $event = $request->input('event');
@@ -59,8 +58,14 @@ class WebhookController extends Controller
                 ]);
                 
                 if ($user) {
-                    $user->update(['kyc_verified' => 1]);
-                    Log::info("User KYC Verified via Webhook: " . $user->id);
+                    // Update user's tier if the completed verification is higher than current
+                    if ($verification->level > $user->kyc_tier) {
+                        $user->update([
+                            'kyc_tier' => $verification->level,
+                            'kyc_verified' => 1 // Mark as verified generally as well
+                        ]);
+                        Log::info("User KYC Upgraded to Level $verification->level: " . $user->id);
+                    }
                 }
                 break;
 
@@ -70,10 +75,7 @@ class WebhookController extends Controller
                     'data' => $data
                 ]);
                 
-                if ($user) {
-                    $user->update(['kyc_verified' => 0]);
-                    Log::info("User KYC Failed via Webhook: " . $user->id);
-                }
+                Log::info("User KYC Failed via Webhook for Level $verification->level, User: " . ($user->id ?? 'unknown'));
                 break;
 
             default:

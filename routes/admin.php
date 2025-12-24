@@ -42,6 +42,7 @@ use App\Http\Controllers\Admin\SystemMaintenanceController;
 use App\Http\Controllers\Admin\SalaryDisbursementController;
 use App\Http\Controllers\Admin\PaymentGatewayCurrencyController;
 use App\Http\Controllers\Admin\SalaryDisbursementLogsController;
+use App\Http\Controllers\Admin\KycTierController;
 
 // All Admin Route Is Here
 Route::prefix('admin')->name('admin.')->group(function () {
@@ -284,6 +285,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('index', 'index')->name('index');
         Route::get('edit/{slug}', 'edit')->name('edit');
         Route::put('update/{slug}', 'update')->name('update');
+        Route::put('status/update', 'statusUpdate')->name('status.update');
+    });
+
+    // KYC Tiers
+    Route::controller(KycTierController::class)->prefix('kyc-tiers')->name('kyc.tiers.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::put('update', 'update')->name('update');
         Route::put('status/update', 'statusUpdate')->name('status.update');
     });
 

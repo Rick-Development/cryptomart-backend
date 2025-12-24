@@ -40,7 +40,7 @@ Route::middleware('auth:api')->prefix('v1/savings')->group(function () {
         Route::get('plans', [\App\Http\Controllers\Api\Savings\SafeLockController::class, 'plans']);
         Route::post('create', [\App\Http\Controllers\Api\Savings\SafeLockController::class, 'create']);
         Route::post('break', [\App\Http\Controllers\Api\Savings\SafeLockController::class, 'break']);
-        Route::get('history', [\App\Http\Controllers\Api\Savings\SafeLockController::class, 'history']);
+        // Route::get('history', [\App\Http\Controllers\Api\Savings\SafeLockController::class, 'history']); 
     });
 
     // Target Savings
@@ -55,6 +55,8 @@ Route::middleware('auth:api')->prefix('v1/savings')->group(function () {
 
 // KYC (YouVerify)
 Route::middleware('auth:api')->prefix('kyc')->group(function () {
+    Route::get('user-tier', [\App\Http\Controllers\Api\User\KycController::class, 'userTier']);
+    Route::get('tiers', [\App\Http\Controllers\Api\User\KycController::class, 'tiers']);
     Route::post('initiate', [\App\Http\Controllers\Api\User\KycController::class, 'initiate']);
     Route::get('status/{reference}', [\App\Http\Controllers\Api\User\KycController::class, 'status']);
 });
