@@ -443,6 +443,39 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('wallet/transactions/{crypto_asset_id}/{wallet_id}','walletTransactions')->name('wallet.transactions');
         Route::post('wallet/transactions/search/{crypto_asset_id}/{wallet_id}','walletTransactionSearch')->name('wallet.transaction.search');
     });
+
+    // P2P Marketplace
+    Route::prefix('p2p')->name('p2p.')->group(function () {
+        // Ads
+        Route::controller(App\Http\Controllers\Admin\P2PAdController::class)->prefix('ads')->name('ads.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/{id}', 'show')->name('show');
+            Route::put('/{id}', 'update')->name('update');
+            Route::delete('/{id}', 'destroy')->name('destroy');
+        });
+
+        // Disclaimers
+        Route::controller(App\Http\Controllers\Admin\P2PDisclaimerController::class)->prefix('disclaimers')->name('disclaimers.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('/', 'store')->name('store');
+            Route::put('/{id}', 'update')->name('update');
+            Route::delete('/{id}', 'destroy')->name('destroy');
+        });
+
+        // Disputes
+        Route::controller(App\Http\Controllers\Admin\P2PDisputeController::class)->prefix('disputes')->name('disputes.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/{id}', 'show')->name('show');
+            Route::post('/{id}/resolve', 'resolve')->name('resolve');
+        });
+
+        // Risk Management
+        Route::controller(App\Http\Controllers\Admin\P2PRiskController::class)->prefix('risk')->name('risk.')->group(function () {
+            Route::get('/users', 'index')->name('users');
+            Route::post('/users/{id}/recalculate', 'recalculate')->name('recalculate');
+            Route::post('/users/{id}/flag', 'flagUser')->name('flag');
+        });
+    });
 });
 
 Route::get('admin/pusher/beams-auth', function (Request $request) {

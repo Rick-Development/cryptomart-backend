@@ -238,6 +238,47 @@ Route::prefix("user")->name("api.user.")->group(function () {
             Route::post('/trade/{uid}/dispute', 'dispute');
         });
 
+        // P2P Trading
+        Route::post('/p2p/trade/{uid}/release', [App\Http\Controllers\Api\OrderController::class, 'release']);
+        Route::post('/p2p/trade/{uid}/dispute', [App\Http\Controllers\Api\OrderController::class, 'dispute']);
+
+        // P2P Marketplace (New Bybit-style)
+        Route::prefix('p2p')->group(function () {
+            // Ads
+            Route::get('/ads', [App\Http\Controllers\Api\V1\User\P2PAdController::class, 'index']);
+            Route::get('/ads/{id}', [App\Http\Controllers\Api\V1\User\P2PAdController::class, 'show']);
+            Route::post('/ads', [App\Http\Controllers\Api\V1\User\P2PAdController::class, 'store']);
+            Route::post('/ads/{id}/toggle', [App\Http\Controllers\Api\V1\User\P2PAdController::class, 'toggle']);
+            Route::get('/my-ads', [App\Http\Controllers\Api\V1\User\P2PAdController::class, 'myAds']);
+            
+            // Payment Methods
+            Route::apiResource('payment-methods', App\Http\Controllers\Api\V1\User\P2PPaymentMethodController::class);
+            
+            // Orders
+            Route::post('/orders', [App\Http\Controllers\Api\V1\User\P2POrderController::class, 'store']);
+            Route::get('/my-orders', [App\Http\Controllers\Api\V1\User\P2POrderController::class, 'myOrders']);
+            Route::post('/orders/{uid}/mark-paid', [App\Http\Controllers\Api\V1\User\P2POrderController::class, 'markPaid']);
+            Route::post('/orders/{uid}/release', [App\Http\Controllers\Api\V1\User\P2POrderController::class, 'release']);
+            Route::post('/orders/{uid}/appeal', [App\Http\Controllers\Api\V1\User\P2POrderController::class, 'appeal']);
+            Route::get('/orders/{uid}/chat', [App\Http\Controllers\Api\V1\User\P2POrderController::class, 'chat']);
+            Route::post('/orders/{uid}/chat', [App\Http\Controllers\Api\V1\User\P2POrderController::class, 'sendMessage']);
+            
+            // Disclaimers
+            Route::get('/disclaimers', [App\Http\Controllers\Api\V1\User\P2PDisclaimerController::class, 'index']);
+            Route::get('/disclaimers/{key}', [App\Http\Controllers\Api\V1\User\P2PDisclaimerController::class, 'show']);
+            Route::post('/disclaimers/{key}/accept', [App\Http\Controllers\Api\V1\User\P2PDisclaimerController::class, 'accept']);
+            
+            // KYC Status & Limits
+            Route::get('/kyc/status', [App\Http\Controllers\Api\V1\User\P2PKycController::class, 'status']);
+            Route::get('/kyc/limits', [App\Http\Controllers\Api\V1\User\P2PKycController::class, 'limits']);
+            Route::post('/kyc/check-permission', [App\Http\Controllers\Api\V1\User\P2PKycController::class, 'checkPermission']);
+            
+            // Feedback
+            Route::post('/orders/{uid}/feedback', [App\Http\Controllers\Api\V1\User\P2PFeedbackController::class, 'store']);
+            Route::get('/feedback', [App\Http\Controllers\Api\V1\User\P2PFeedbackController::class, 'index']);
+            Route::get('/feedback/{userId}', [App\Http\Controllers\Api\V1\User\P2PFeedbackController::class, 'index']);
+        });
+
         // Locked funds
         Route::controller(App\Http\Controllers\Api\LockedFundsController::class)->prefix('locked-funds')->group(function () {
             Route::post('lock', 'lock');

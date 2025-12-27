@@ -1,0 +1,330 @@
+{
+    "info": {
+        "name": "P2P KYC API",
+        "description": "KYC level restrictions and limits for P2P marketplace",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Get KYC Status",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{token}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/api/user/p2p/kyc/status",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "user",
+                        "p2p",
+                        "kyc",
+                        "status"
+                    ]
+                },
+                "description": "Get user's current P2P KYC level and requirements for each tier"
+            },
+            "response": [
+                {
+                    "name": "Success Response",
+                    "originalRequest": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/user/p2p/kyc/status",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "p2p",
+                                "kyc",
+                                "status"
+                            ]
+                        }
+                    },
+                    "status": "OK",
+                    "code": 200,
+                    "_postman_previewlanguage": "json",
+                    "header": [
+                        {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                        }
+                    ],
+                    "body": "{\n    \"message\": \"P2P KYC status\",\n    \"data\": {\n        \"current_level\": 1,\n        \"current_tier_info\": {\n            \"level\": 1,\n            \"name\": \"Basic\",\n            \"can_trade\": true,\n            \"can_create_ads\": false,\n            \"daily_limit\": 100000,\n            \"requirements\": [\"Email\", \"Phone\", \"Basic Info\"]\n        },\n        \"all_tiers\": {\n            \"0\": {\n                \"level\": 0,\n                \"name\": \"Unverified\",\n                \"can_trade\": false,\n                \"can_create_ads\": false,\n                \"daily_limit\": 0,\n                \"requirements\": [\"Email verification\"]\n            },\n            \"1\": {\n                \"level\": 1,\n                \"name\": \"Basic\",\n                \"can_trade\": true,\n                \"can_create_ads\": false,\n                \"daily_limit\": 100000,\n                \"requirements\": [\"Email\", \"Phone\", \"Basic Info\"]\n            },\n            \"2\": {\n                \"level\": 2,\n                \"name\": \"Verified\",\n                \"can_trade\": true,\n                \"can_create_ads\": true,\n                \"daily_limit\": 1000000,\n                \"requirements\": [\"KYC Level 1\", \"ID Verification\", \"Selfie\"]\n            },\n            \"3\": {\n                \"level\": 3,\n                \"name\": \"Merchant\",\n                \"can_trade\": true,\n                \"can_create_ads\": true,\n                \"daily_limit\": -1,\n                \"requirements\": [\"KYC Level 2\", \"Business Verification\", \"Admin Approval\"]\n            }\n        },\n        \"kyc_status\": \"verified\",\n        \"can_upgrade\": true\n    },\n    \"type\": \"success\"\n}"
+                }
+            ]
+        },
+        {
+            "name": "Get Trading Limits",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{token}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/api/user/p2p/kyc/limits",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "user",
+                        "p2p",
+                        "kyc",
+                        "limits"
+                    ]
+                },
+                "description": "Get P2P trading limits based on user's KYC level"
+            },
+            "response": [
+                {
+                    "name": "Success Response",
+                    "originalRequest": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/user/p2p/kyc/limits",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "p2p",
+                                "kyc",
+                                "limits"
+                            ]
+                        }
+                    },
+                    "status": "OK",
+                    "code": 200,
+                    "_postman_previewlanguage": "json",
+                    "header": [
+                        {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                        }
+                    ],
+                    "body": "{\n    \"message\": \"P2P trading limits\",\n    \"data\": {\n        \"kyc_level\": 2,\n        \"limits\": {\n            \"daily_buy_limit\": 1000000,\n            \"daily_sell_limit\": 1000000,\n            \"single_order_max\": 500000,\n            \"can_create_ads\": true\n        },\n        \"currency\": \"NGN\"\n    },\n    \"type\": \"success\"\n}"
+                }
+            ]
+        },
+        {
+            "name": "Check Permission (Trade)",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{token}}"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"action\": \"trade\"\n}",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    }
+                },
+                "url": {
+                    "raw": "{{base_url}}/api/user/p2p/kyc/check-permission",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "user",
+                        "p2p",
+                        "kyc",
+                        "check-permission"
+                    ]
+                },
+                "description": "Check if user has permission to perform P2P action (trade, create_ad, merchant)"
+            }
+        },
+        {
+            "name": "Check Permission (Create Ad)",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{token}}"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"action\": \"create_ad\"\n}",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    }
+                },
+                "url": {
+                    "raw": "{{base_url}}/api/user/p2p/kyc/check-permission",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "user",
+                        "p2p",
+                        "kyc",
+                        "check-permission"
+                    ]
+                },
+                "description": "Check if user can create P2P ads (requires KYC Level 2)"
+            },
+            "response": [
+                {
+                    "name": "Insufficient KYC Level",
+                    "originalRequest": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"action\": \"create_ad\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/user/p2p/kyc/check-permission",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "p2p",
+                                "kyc",
+                                "check-permission"
+                            ]
+                        }
+                    },
+                    "status": "Forbidden",
+                    "code": 403,
+                    "_postman_previewlanguage": "json",
+                    "header": [
+                        {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                        }
+                    ],
+                    "body": "{\n    \"message\": \"KYC Level 2 required for this action\",\n    \"data\": {\n        \"current_level\": 1,\n        \"required_level\": 2,\n        \"action\": \"create_ad\"\n    },\n    \"type\": \"error\"\n}"
+                }
+            ]
+        },
+        {
+            "name": "Check Permission (Merchant)",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{token}}"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"action\": \"merchant\"\n}",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    }
+                },
+                "url": {
+                    "raw": "{{base_url}}/api/user/p2p/kyc/check-permission",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "user",
+                        "p2p",
+                        "kyc",
+                        "check-permission"
+                    ]
+                },
+                "description": "Check if user has merchant status (requires KYC Level 3)"
+            }
+        }
+    ],
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://127.0.0.1:8000",
+            "type": "string"
+        },
+        {
+            "key": "token",
+            "value": "YOUR_ACCESS_TOKEN_HERE",
+            "type": "string"
+        }
+    ]
+}

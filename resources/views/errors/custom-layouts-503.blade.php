@@ -9,7 +9,7 @@
     <!-- bootstrap css link -->
     <link rel="stylesheet" href="{{ asset('public/frontend/') }}/css/bootstrap.css">
     <!-- css -->
-    <link rel="stylesheet" href="{{ asset('public/backend/css/style.css') }}">
+    <link rel="stylesheet" href="{{ asset('backend/css/style.css') }}">
     <style>
         *{
             margin: 0;

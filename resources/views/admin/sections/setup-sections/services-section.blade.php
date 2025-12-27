@@ -7,7 +7,7 @@
 @extends('admin.layouts.master')
 
 @push('css')
-    <link rel="stylesheet" href="{{ asset('public/backend/css/fontawesome-iconpicker.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('backend/css/fontawesome-iconpicker.min.css') }}">
     <style>
         .fileholder {
             min-height: 374px !important;
@@ -194,7 +194,7 @@
 @endsection
 
 @push('script')
-    <script src="{{ asset('public/backend/js/fontawesome-iconpicker.js') }}"></script>
+    <script src="{{ asset('backend/js/fontawesome-iconpicker.js') }}"></script>
 
     <script>
         // icon picker

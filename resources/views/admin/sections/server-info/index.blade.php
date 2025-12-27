@@ -33,7 +33,7 @@
                         <tr>
                             <td>
                                 <ul class="user-list">
-                                    <li><img src="{{ asset('public/backend/images/icon/laravel.png') }}" alt="laravel"></li>
+                                    <li><img src="{{ asset('backend/images/icon/laravel.png') }}" alt="laravel"></li>
                                 </ul>
                             </td>
                             <td>{{ __("App Name") }}</td>
@@ -42,7 +42,7 @@
                         <tr>
                             <td>
                                 <ul class="user-list">
-                                    <li><img src="{{ asset('public/backend/images/icon/app.png') }}" alt="app"></li>
+                                    <li><img src="{{ asset('backend/images/icon/app.png') }}" alt="app"></li>
                                 </ul>
                             </td>
                             <td>{{ __("App Environment") }}</td>
@@ -51,7 +51,7 @@
                         <tr>
                             <td>
                                 <ul class="user-list">
-                                    <li><img src="{{ asset('public/backend/images/icon/debug.png') }}" alt="debug"></li>
+                                    <li><img src="{{ asset('backend/images/icon/debug.png') }}" alt="debug"></li>
                                 </ul>
                             </td>
                             <td>{{ __("App Debug") }}</td>
@@ -60,7 +60,7 @@
                         <tr>
                             <td>
                                 <ul class="user-list">
-                                    <li><img src="{{ asset('public/backend/images/icon/app-mode.png') }}" alt="debug"></li>
+                                    <li><img src="{{ asset('backend/images/icon/app-mode.png') }}" alt="debug"></li>
                                 </ul>
                             </td>
                             <td>{{ __("App Mode") }}</td>
@@ -69,7 +69,7 @@
                         <tr>
                             <td>
                                 <ul class="user-list">
-                                    <li><img src="{{ asset('public/backend/images/icon/database.png') }}" alt="database"></li>
+                                    <li><img src="{{ asset('backend/images/icon/database.png') }}" alt="database"></li>
                                 </ul>
                             </td>
                             <td>{{ __("Database Connection") }}</td>
@@ -78,7 +78,7 @@
                         <tr>
                             <td>
                                 <ul class="user-list">
-                                    <li><img src="{{ asset('public/backend/images/icon/host.jpeg') }}" alt="host"></li>
+                                    <li><img src="{{ asset('backend/images/icon/host.jpeg') }}" alt="host"></li>
                                 </ul>
                             </td>
                             <td>{{ __("Database Host") }}</td>
@@ -87,7 +87,7 @@
                         <tr>
                             <td>
                                 <ul class="user-list">
-                                    <li><img src="{{ asset('public/backend/images/icon/port.png') }}" alt="port"></li>
+                                    <li><img src="{{ asset('backend/images/icon/port.png') }}" alt="port"></li>
                                 </ul>
                             </td>
                             <td>{{ __("Database Port") }}</td>
@@ -96,7 +96,7 @@
                         <tr>
                             <td>
                                 <ul class="user-list">
-                                    <li><img src="{{ asset('public/backend/images/icon/sql.png') }}" alt="sql"></li>
+                                    <li><img src="{{ asset('backend/images/icon/sql.png') }}" alt="sql"></li>
                                 </ul>
                             </td>
                             <td>{{ __("Database Name") }}</td>
@@ -105,7 +105,7 @@
                         <tr>
                             <td>
                                 <ul class="user-list">
-                                    <li><img src="{{ asset('public/backend/images/icon/protocol.png') }}" alt="protocol"></li>
+                                    <li><img src="{{ asset('backend/images/icon/protocol.png') }}" alt="protocol"></li>
                                 </ul>
                             </td>
                             <td>{{ __("Database Username") }}</td>
@@ -114,7 +114,7 @@
                         <tr>
                             <td>
                                 <ul class="user-list">
-                                    <li><img src="{{ asset('public/backend/images/icon/php.png') }}" alt="php"></li>
+                                    <li><img src="{{ asset('backend/images/icon/php.png') }}" alt="php"></li>
                                 </ul>
                             </td>
                             <td>{{ __("PHP Version") }}</td>
@@ -123,7 +123,7 @@
                         <tr>
                             <td>
                                 <ul class="user-list">
-                                    <li><img src="{{ asset('public/backend/images/icon/laravel.png') }}" alt="laravel"></li>
+                                    <li><img src="{{ asset('backend/images/icon/laravel.png') }}" alt="laravel"></li>
                                 </ul>
                             </td>
                             <td>{{ __("Laravel Version") }}</td>
@@ -132,7 +132,7 @@
                         <tr>
                             <td>
                                 <ul class="user-list">
-                                    <li><img src="{{ asset('public/backend/images/icon/apache.png') }}" alt="apache"></li>
+                                    <li><img src="{{ asset('backend/images/icon/apache.png') }}" alt="apache"></li>
                                 </ul>
                             </td>
                             <td>{{ __("Server Software") }}</td>
@@ -141,7 +141,7 @@
                         <tr>
                             <td>
                                 <ul class="user-list">
-                                    <li><img src="{{ asset('public/backend/images/icon/ip.png') }}" alt="user"></li>
+                                    <li><img src="{{ asset('backend/images/icon/ip.png') }}" alt="user"></li>
                                 </ul>
                             </td>
                             <td>{{ __("Server IP Address") }}</td>
@@ -150,7 +150,7 @@
                         <tr>
                             <td>
                                 <ul class="user-list">
-                                    <li><img src="{{ asset('public/backend/images/icon/protocol.png') }}" alt="protocol"></li>
+                                    <li><img src="{{ asset('backend/images/icon/protocol.png') }}" alt="protocol"></li>
                                 </ul>
                             </td>
                             <td>{{ __("Server Protocol") }}</td>
@@ -159,7 +159,7 @@
                         <tr>
                             <td>
                                 <ul class="user-list">
-                                    <li><img src="{{ asset('public/backend/images/icon/timezone.png') }}" alt="timezone"></li>
+                                    <li><img src="{{ asset('backend/images/icon/timezone.png') }}" alt="timezone"></li>
                                 </ul>
                             </td>
                             <td>{{ __("TimeZone") }}</td>

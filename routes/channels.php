@@ -20,3 +20,12 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
 Broadcast::channel('support.conversation',function(){
     return true;
 });
+
+Broadcast::channel('p2p-order.{id}', function ($user, $id) {
+    if (!$user) return false;
+    
+    $order = \App\Models\P2POrder::find($id);
+    if (!$order) return false;
+
+    return $user->id === $order->maker_id || $user->id === $order->taker_id || $user->can('admin.p2p.manage'); // Assuming admin permission or just allow admins generally
+});
