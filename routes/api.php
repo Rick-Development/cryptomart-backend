@@ -50,6 +50,13 @@ Route::middleware('auth:api')->prefix('v1/savings')->group(function () {
         Route::post('break', [\App\Http\Controllers\Api\Savings\TargetController::class, 'break']);
         Route::get('history', [\App\Http\Controllers\Api\Savings\TargetController::class, 'history']);
     });
+
+    // EduSave
+    Route::prefix('edusave')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Api\Savings\EduSaveController::class, 'index']);
+        Route::post('create', [\App\Http\Controllers\Api\Savings\EduSaveController::class, 'create']);
+        Route::get('history', [\App\Http\Controllers\Api\Savings\EduSaveController::class, 'history']);
+    });
 });
 
 // KYC (YouVerify)

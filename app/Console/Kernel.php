@@ -20,6 +20,9 @@ class Kernel extends ConsoleKernel
 
         // Target Auto-Save - Daily (the service handles internal frequency check)
         $schedule->command('savings:auto-save')->daily();
+
+        // EduSave Payouts - Daily
+        $schedule->command('edusave:process-payouts')->daily();
     }
 
     /**

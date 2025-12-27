@@ -15,6 +15,28 @@ class Response {
         return response()->json($responseData,$status);
     }
 
+
+    public static function errorResponse($message,$data = null, $status = 400) {
+        $responseData = [
+            'message'   =>  $message,
+            'data'      => $data,
+            'type'          => "error",
+        ];
+        
+        return response()->json($responseData,$status);
+    }
+        
+    public static function successResponse($message,$data = null,$status = 200) {
+        $responseData = [
+            'message'       => $message,
+            'data'          => $data,
+            'type'          => "success",
+        ];
+
+        return response()->json($responseData,$status);
+    }
+
+    
     public static function success($success,$data = null,$status = 200) {
         $responseData = [
             'message'       => [

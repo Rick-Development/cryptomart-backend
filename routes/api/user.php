@@ -232,6 +232,10 @@ Route::prefix("user")->name("api.user.")->group(function () {
             // fetching takers
             Route::get('/traders', 'fetch_traders');
             Route::post('/create-trader', 'create_trader');
+            
+            // trade actions
+            Route::post('/trade/{uid}/release', 'release');
+            Route::post('/trade/{uid}/dispute', 'dispute');
         });
 
         // Locked funds

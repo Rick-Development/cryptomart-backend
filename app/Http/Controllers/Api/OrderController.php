@@ -164,10 +164,10 @@ class OrderController extends Controller
             $order = P2POrder::where('id', $id)->lockForUpdate()->firstOrFail();
             if ($order->status !== 'open')
                 return response()->json(['error' => 'order not open'], 400);
-            if ($order->trader_id === auth()->id())
+            if ($order->maker_id === auth()->id())
                 // return response()->json(['error' => 'trader cannot accept own order'], 400);
                 return Response::error(false, 'trader cannot accept own order', 400);
-            $order->buyer_id = auth()->id();
+            $order->taker_id = auth()->id();
             $order->status = 'accepted';
             $order->save();
             return response()->json($order);
@@ -183,7 +183,7 @@ class OrderController extends Controller
             $order = P2POrder::where('id', $id)->lockForUpdate()->firstOrFail();
             if ($order->status !== 'accepted')
                 return response()->json(['error' => 'invalid state'], 400);
-            if ($order->buyer_id !== auth()->id())
+            if ($order->taker_id !== auth()->id())
                 return response()->json(['error' => 'only buyer can fund'], 403);
 
             // resolve payer wallet
@@ -212,13 +212,13 @@ class OrderController extends Controller
             // Determine from-wallet (where reserved exists) and to-wallet
             if ($order->type === 'sell') {
                 // buyer funded quote_currency in payerWallet.reserved -> release to trader (seller) in quote_currency
-                $fromWallet = UserWallet::where('user_id', $order->buyer_id)->where('currency', $order->quote_currency)->firstOrFail();
-                $toWallet = UserWallet::findOrFail(UserWallet::where('user_id', $order->trader_id)->where('currency', $order->quote_currency)->first()->id);
+                $fromWallet = UserWallet::where('user_id', $order->taker_id)->where('currency', $order->quote_currency)->firstOrFail();
+                $toWallet = UserWallet::findOrFail(UserWallet::where('user_id', $order->maker_id)->where('currency', $order->quote_currency)->first()->id);
                 $amount = (string) $order->total;
             } else {
                 // buy order: seller deposited asset into reserved -> release asset to buyer (trader)
-                $fromWallet = UserWallet::where('user_id', $order->buyer_id)->where('currency', $order->asset)->firstOrFail();
-                $toWallet = UserWallet::where('user_id', $order->trader_id)->where('currency', $order->asset)->firstOrFail();
+                $fromWallet = UserWallet::where('user_id', $order->taker_id)->where('currency', $order->asset)->firstOrFail();
+                $toWallet = UserWallet::where('user_id', $order->maker_id)->where('currency', $order->asset)->firstOrFail();
                 $amount = (string) $order->amount;
             }
 
@@ -237,11 +237,46 @@ class OrderController extends Controller
             $order = P2POrder::where('id', $id)->lockForUpdate()->firstOrFail();
             if (!in_array($order->status, ['draft', 'open']))
                 return response()->json(['error' => 'cannot cancel'], 400);
-            if ($order->trader_id !== auth()->id())
+            if ($order->maker_id !== auth()->id())
                 return response()->json(['error' => 'forbidden'], 403);
             $order->status = 'cancelled';
             $order->save();
             return response()->json($order);
+        });
+    }
+
+    // POST /api/p2p/trade/{uid}/dispute
+    public function dispute(Request $r, $uid)
+    {
+        $validator = \Validator::make($r->all(), [
+            'reason' => 'required|string|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return Response::error($validator->errors()->first(), null, 400);
+        }
+
+        return DB::transaction(function () use ($uid, $r) {
+            $order = P2POrder::where('id', $uid)->lockForUpdate()->firstOrFail();
+            
+            // Allow dispute if order is part of an active trade
+            if (!in_array($order->status, ['funded', 'accepted', 'paid'])) {
+                 return Response::error('Order cannot be disputed in current state', null, 400);
+            }
+            
+            // Check if user is part of the trade
+             if ($order->maker_id !== auth()->id() && $order->taker_id !== auth()->id()) {
+                return Response::error('Unauthorized to dispute this trade', null, 403);
+            }
+
+            $order->status = 'disputed';
+            $meta = $order->meta ?? [];
+            $meta['dispute_reason'] = $r->reason;
+            $meta['disputed_by'] = auth()->id();
+            $order->meta = $meta;
+            $order->save();
+
+            return Response::success('Trade disputed successfully', $order, 200);
         });
     }
 }
