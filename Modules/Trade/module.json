@@ -1,0 +1,11 @@
+{
+    "name": "Trade",
+    "alias": "trade",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Trade\\app\\Providers\\TradeServiceProvider"
+    ],
+    "files": []
+}

@@ -1,0 +1,11 @@
+{
+    "name": "VirtualCard",
+    "alias": "virtualcard",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\VirtualCard\\app\\Providers\\VirtualCardServiceProvider"
+    ],
+    "files": []
+}

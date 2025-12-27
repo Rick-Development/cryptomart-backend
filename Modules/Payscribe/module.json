@@ -1,0 +1,11 @@
+{
+    "name": "Payscribe",
+    "alias": "payscribe",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Payscribe\\app\\Providers\\PayscribeServiceProvider"
+    ],
+    "files": []
+}

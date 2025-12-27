@@ -10,7 +10,7 @@
         "barryvdh/laravel-dompdf": "*",
         "buglinjo/laravel-webp": "*",
         "guzzlehttp/guzzle": "*",
-        "intervention/image": "*",
+        "intervention/image": "^3.11",
         "jenssegers/agent": "*",
         "laravel/framework": "^12.0",
         "laravel/passport": "*",
@@ -39,6 +39,7 @@
     "autoload": {
         "psr-4": {
             "App\\": "app/",
+            "Modules\\": "Modules/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/",
             "Project\\Installer\\": "resources/installer/src/"

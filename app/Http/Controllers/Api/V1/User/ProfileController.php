@@ -14,6 +14,8 @@ use App\Http\Resources\User\UserResource;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password;
 use App\Providers\Admin\BasicSettingsProvider;
+use App\Models\Admin\Currency;
+
 
 class ProfileController extends Controller
 {
@@ -174,16 +176,49 @@ class ProfileController extends Controller
         return Response::success([__('Logout success!')], [], 200);
     }
 
-    public function get_balances()
+    //     public function getWallets()
+    // {
+    //     $user = auth()->user();
+
+    //     $currencies = Currency::get();
+    //     $userWallet = UserWallet::where('user_id', $user->id)->get();
+
+    //     //check the list
+
+    //     return response()->json([
+    //         'status' => true,
+    //         'data' => 
+    //     ]);
+    // }
+
+    public function getBalances()
     {
         $user = auth()->user();
 
-        $get_balance = UserWallet::where('user_id', $user->id)->first();
+        $get_balance = UserWallet::where('user_id', $user->id)->get();
         return response()->json([
             'status' => true,
-            'data' => [
-                'balance' => $get_balance
-            ]
+            'data' => $get_balance
         ]);
     }
+
+//     {
+//     "status": true,
+//     "data": {
+//         "balance": {
+//             "id": 59,
+//             "uuid": null,
+//             "user_id": 78,
+//             "currency_id": 1,
+//             "balance": "0.00000000",
+//             "status": true,
+//             "created_at": "2025-11-17T01:04:05.000000Z",
+//             "updated_at": "2025-11-17T01:04:05.000000Z",
+//             "currency_code": "NGN",
+//             "quote_currency_code": null,
+//             "default": 0
+//         }
+//     }
+// }
+
 }

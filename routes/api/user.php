@@ -34,7 +34,9 @@ Route::prefix("user")->name("api.user.")->group(function () {
             Route::post('password/update', 'profilePasswordUpdate')->middleware('app.mode');
             Route::post('delete-account', 'deleteProfile')->middleware('app.mode');
 
-            Route::get('user-balances', 'get_balances')->middleware('app.mode');
+            Route::get('user-balances', 'getBalances')->middleware('app.mode');
+            Route::get('wallets', 'getWallets')->middleware('app.mode');
+            
         });
 
 
