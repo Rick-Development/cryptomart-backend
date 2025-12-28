@@ -18,6 +18,7 @@ class P2PDisputeController extends Controller
      */
     public function index(Request $request)
     {
+        $page_title = "P2P Disputes";
         $query = P2POrder::with(['maker', 'taker', 'ad', 'chats'])
             ->where('appeal_status', 'pending');
 
@@ -27,7 +28,7 @@ class P2PDisputeController extends Controller
 
         $disputes = $query->latest()->paginate(20);
 
-        return Response::successResponse('Disputes fetched', ['disputes' => $disputes]);
+        return view('admin.sections.p2p.disputes.index', compact('page_title', 'disputes'));
     }
 
     /**
@@ -35,11 +36,12 @@ class P2PDisputeController extends Controller
      */
     public function show($id)
     {
+        $page_title = "Dispute Details";
         $dispute = P2POrder::with(['maker', 'taker', 'ad', 'chats'])
             ->where('appeal_status', 'pending')
             ->findOrFail($id);
 
-        return Response::successResponse('Dispute details', ['dispute' => $dispute]);
+        return view('admin.sections.p2p.disputes.details', compact('page_title', 'dispute'));
     }
 
     /**
@@ -53,7 +55,7 @@ class P2PDisputeController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return Response::errorResponse('Validation Error', $validator->errors()->all());
+            return back()->withErrors($validator)->withInput();
         }
 
         return DB::transaction(function () use ($request, $id) {
@@ -133,7 +135,7 @@ class P2PDisputeController extends Controller
             // Broadcast Event
             event(new \App\Events\P2POrderStatusUpdated($order));
 
-            return Response::successResponse('Dispute resolved', ['order' => $order]);
+            return redirect()->route('admin.p2p.disputes.index')->with(['success' => ['Dispute resolved successfully']]);
         });
     }
 }

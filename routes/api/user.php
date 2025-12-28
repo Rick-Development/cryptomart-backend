@@ -2,6 +2,7 @@
 use App\Http\Controllers\Admin\InterestController;
 use App\Http\Controllers\Api\CryptomartInterestController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\V1\User\WalletController;
 use App\Http\Controllers\Api\V1\User\ProfileController;
 use App\Http\Controllers\Api\V1\User\AddMoneyController;
 use App\Http\Controllers\Api\V1\User\MoneyOutController;
@@ -27,6 +28,12 @@ use App\Http\Controllers\Admin\BannerController;
 
 Route::prefix("user")->name("api.user.")->group(function () {
     Route::middleware(['auth:api', 'verification.guard.api'])->group(function () {
+        // wallets
+        Route::controller(WalletController::class)->prefix('wallets')->name('wallets.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/{code}/history', 'history')->name('history');
+        });
+
         // profile
         Route::controller(ProfileController::class)->prefix('profile')->group(function () {
             Route::get('info', 'profileInfo');
@@ -288,6 +295,13 @@ Route::prefix("user")->name("api.user.")->group(function () {
         Route::post('/create-interest', [InterestController::class, 'create_interest']);
         Route::controller(CryptomartInterestController::class)->prefix('interest')->group(function () {
             Route::get('fetch-interests', 'interests');
+        });
+
+        // SafeHaven Integration
+        Route::controller(App\Http\Controllers\Api\V1\User\SafeHavenController::class)->prefix('safehaven')->group(function () {
+            Route::get('virtual-account', 'virtualAccount');
+            Route::post('name-enquiry', 'nameEnquiry');
+            Route::post('transfer', 'transfer');
         });
     });
 

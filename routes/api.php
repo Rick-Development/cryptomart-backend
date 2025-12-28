@@ -3,6 +3,8 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+// KYC Tiers (Public endpoint)
+Route::get('/kyc/tiers', [\App\Http\Controllers\Api\KycController::class, 'tiers']);
 
 /*
 |--------------------------------------------------------------------------

@@ -15,9 +15,10 @@ class P2PDisclaimerController extends Controller
      */
     public function index()
     {
+        $page_title = "P2P Disclaimers";
         $disclaimers = P2PDisclaimer::latest()->get();
 
-        return Response::successResponse('Disclaimers fetched', ['disclaimers' => $disclaimers]);
+        return view('admin.sections.p2p.disclaimer.index', compact('page_title', 'disclaimers'));
     }
 
     /**
@@ -35,12 +36,12 @@ class P2PDisclaimerController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return Response::errorResponse('Validation Error', $validator->errors()->all());
+            return back()->withErrors($validator)->withInput();
         }
 
         $disclaimer = P2PDisclaimer::create($request->all());
 
-        return Response::successResponse('Disclaimer created', ['disclaimer' => $disclaimer], 201);
+        return back()->with(['success' => ['Disclaimer created successfully']]);
     }
 
     /**
@@ -48,9 +49,9 @@ class P2PDisclaimerController extends Controller
      */
     public function show($id)
     {
+        // Typically handled by modal in index, or separate view
         $disclaimer = P2PDisclaimer::with('acceptances')->findOrFail($id);
-
-        return Response::successResponse('Disclaimer details', ['disclaimer' => $disclaimer]);
+        return back()->with(['info' => ['Disclaimer details loaded']]); 
     }
 
     /**
@@ -70,12 +71,12 @@ class P2PDisclaimerController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return Response::errorResponse('Validation Error', $validator->errors()->all());
+             return back()->withErrors($validator)->withInput();
         }
 
         $disclaimer->update($request->all());
 
-        return Response::successResponse('Disclaimer updated', ['disclaimer' => $disclaimer]);
+        return back()->with(['success' => ['Disclaimer updated successfully']]);
     }
 
     /**
@@ -86,6 +87,6 @@ class P2PDisclaimerController extends Controller
         $disclaimer = P2PDisclaimer::findOrFail($id);
         $disclaimer->delete();
 
-        return Response::successResponse('Disclaimer deleted');
+        return back()->with(['success' => ['Disclaimer deleted successfully']]);
     }
 }

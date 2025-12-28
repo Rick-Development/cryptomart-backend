@@ -13,12 +13,8 @@ class Authenticate extends Middleware
      */
     protected function redirectTo($request): ?string
     {
-        if (!$request->expectsJson()) {
-            throw new HttpResponseException(
-                response()->json([
-                    'message' => 'Unauthenticated.',
-                ], 401)
-            );
+        if ($request->expectsJson()) {
+            return null; // Laravel handles this by throwing AuthenticationException which Handler renders as JSON
         }
 
         // For web users

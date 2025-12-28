@@ -444,6 +444,16 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('wallet/transactions/search/{crypto_asset_id}/{wallet_id}','walletTransactionSearch')->name('wallet.transaction.search');
     });
 
+    // Savings
+    Route::controller(App\Http\Controllers\Admin\SavingsController::class)->prefix('savings')->name('savings.')->group(function () {
+        Route::get('/', 'index')->name('index');
+    });
+
+    // EduSave
+    Route::controller(App\Http\Controllers\Admin\EduSaveController::class)->prefix('edusave')->name('edusave.')->group(function () {
+        Route::get('/', 'index')->name('index');
+    });
+
     // P2P Marketplace
     Route::prefix('p2p')->name('p2p.')->group(function () {
         // Ads

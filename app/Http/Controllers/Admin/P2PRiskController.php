@@ -23,6 +23,7 @@ class P2PRiskController extends Controller
      */
     public function index(Request $request)
     {
+        $page_title = "P2P Risk Management";
         $query = P2PUserStat::with('user:id,firstname,lastname,email,kyc_tier');
 
         if ($request->has('level')) {
@@ -35,7 +36,7 @@ class P2PRiskController extends Controller
 
         $users = $query->orderBy('risk_score', 'desc')->paginate(20);
 
-        return Response::successResponse('User risk stats fetched', ['users' => $users]);
+        return view('admin.sections.p2p.risk.index', compact('page_title', 'users'));
     }
 
     /**
@@ -46,7 +47,7 @@ class P2PRiskController extends Controller
         $user = User::findOrFail($userId);
         $stats = $this->riskService->updateRiskScore($user);
 
-        return Response::successResponse('Risk score updated', ['stats' => $stats]);
+        return back()->with(['success' => ['Risk score updated successfully']]);
     }
 
     /**
@@ -56,16 +57,11 @@ class P2PRiskController extends Controller
     {
         $user = User::findOrFail($userId);
         
-        // Assuming there is an is_banned or suspended column, or we toggle KYC
-        // For now, we'll just set risk level to high manually if needed or implement a specific P2P ban flag
-        // Let's implement a 'p2p_banned' column in p2p_user_stats or users table.
-        // For this task, we will just update the P2PUserStat to high risk manually.
-        
         $stats = P2PUserStat::firstOrCreate(['user_id' => $userId]);
         $stats->risk_level = 'high';
         $stats->risk_score = 100; // Force max
         $stats->save();
 
-        return Response::successResponse('User flagged as high risk', ['stats' => $stats]);
+        return back()->with(['success' => ['User flagged as high risk']]);
     }
 }

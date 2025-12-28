@@ -170,6 +170,45 @@
                     ]
                 ])
                 @include('admin.components.side-nav.link-group',[
+                    'group_title'       => "Features",
+                    'group_links'       => [
+                        [
+                            'title'     => "Savings",
+                            'route'     => "admin.savings.index",
+                            'icon'      => "menu-icon las la-piggy-bank",
+                        ],
+                        [
+                            'title'     => "EduSave",
+                            'route'     => "admin.edusave.index",
+                            'icon'      => "menu-icon las la-graduation-cap",
+                        ],
+                        'dropdown'      => [
+                            [
+                                'title'     => "P2P Marketplace",
+                                'icon'      => "menu-icon las la-exchange-alt",
+                                'links'     => [
+                                    [
+                                        'title'     => "Ads",
+                                        'route'     => "admin.p2p.ads.index",
+                                    ],
+                                    [
+                                        'title'     => "Disputes",
+                                        'route'     => "admin.p2p.disputes.index",
+                                    ],
+                                    [
+                                        'title'     => "Disclaimers",
+                                        'route'     => "admin.p2p.disclaimers.index",
+                                    ],
+                                    [
+                                        'title'     => "Risk Management",
+                                        'route'     => "admin.p2p.risk.users",
+                                    ]
+                                ],
+                            ],
+                        ],
+                    ]
+                ])
+                @include('admin.components.side-nav.link-group',[
                     'group_title'       => "Interface Panel",
                     'group_links'       => [
                         'dropdown'      => [

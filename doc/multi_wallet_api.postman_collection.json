@@ -1,0 +1,225 @@
+{
+  "info": {
+    "name": "CryptoMart Multi-Wallet API",
+    "_postman_id": "multi-wallet-api-collection",
+    "description": "API endpoints for Multi-Wallet System (NGN & USD) and KYC Tiers",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Wallets",
+      "item": [
+        {
+          "name": "Get All Wallets",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/user/wallets",
+              "host": ["{{base_url}}"],
+              "path": ["api", "user", "wallets"]
+            },
+            "description": "Retrieve all active wallets (NGN & USD) for the authenticated user with balances."
+          },
+          "response": []
+        },
+        {
+          "name": "Get NGN Wallet History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/user/wallets/NGN/history",
+              "host": ["{{base_url}}"],
+              "path": ["api", "user", "wallets", "NGN", "history"]
+            },
+            "description": "Get transaction history for NGN wallet"
+          },
+          "response": []
+        },
+        {
+          "name": "Get USD Wallet History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/user/wallets/USD/history",
+              "host": ["{{base_url}}"],
+              "path": ["api", "user", "wallets", "USD", "history"]
+            },
+            "description": "Get transaction history for USD wallet"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "KYC",
+      "item": [
+        {
+          "name": "Get KYC Tiers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/kyc/tiers",
+              "host": ["{{base_url}}"],
+              "path": ["api", "kyc", "tiers"]
+            },
+            "description": "Get all available KYC verification tiers"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "SafeHaven (Coming Soon)",
+      "item": [
+        {
+          "name": "Get Virtual Account",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/user/safehaven/virtual-account",
+              "host": ["{{base_url}}"],
+              "path": ["api", "user", "safehaven", "virtual-account"]
+            },
+            "description": "Get or create SafeHaven NGN virtual account"
+          },
+          "response": []
+        },
+        {
+          "name": "Name Enquiry",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bank_code\": \"058\",\n  \"account_number\": \"0123456789\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/user/safehaven/name-enquiry",
+              "host": ["{{base_url}}"],
+              "path": ["api", "user", "safehaven", "name-enquiry"]
+            },
+            "description": "Verify external bank account details"
+          },
+          "response": []
+        },
+        {
+          "name": "Transfer (Withdraw NGN)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 5000,\n  \"bank_code\": \"058\",\n  \"account_number\": \"0123456789\",\n  \"narration\": \"Withdrawal\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/user/safehaven/transfer",
+              "host": ["{{base_url}}"],
+              "path": ["api", "user", "safehaven", "transfer"]
+            },
+            "description": "Initiate NGN transfer to external bank account"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

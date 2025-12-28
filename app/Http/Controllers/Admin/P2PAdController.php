@@ -14,8 +14,12 @@ class P2PAdController extends Controller
     /**
      * List all ads with filters
      */
+    /**
+     * List all ads with filters
+     */
     public function index(Request $request)
     {
+        $page_title = "P2P Ads";
         $query = P2PAd::with(['user']);
 
         if ($request->filled('status')) {
@@ -26,9 +30,9 @@ class P2PAdController extends Controller
             $query->where('user_id', $request->user_id);
         }
 
-        $ads = $query->latest()->paginate(50);
+        $ads = $query->latest()->paginate(20);
 
-        return Response::successResponse('Ads fetched', ['ads' => $ads]);
+        return view('admin.sections.p2p.ads.index', compact('page_title', 'ads'));
     }
 
     /**
@@ -36,9 +40,10 @@ class P2PAdController extends Controller
      */
     public function show($id)
     {
+        $page_title = "Ad Details";
         $ad = P2PAd::with(['user', 'orders'])->findOrFail($id);
 
-        return Response::successResponse('Ad details', ['ad' => $ad]);
+        return view('admin.sections.p2p.ads.details', compact('page_title', 'ad'));
     }
 
     /**
@@ -54,7 +59,7 @@ class P2PAdController extends Controller
 
         $ad->save();
 
-        return Response::successResponse('Ad updated', ['ad' => $ad]);
+        return back()->with(['success' => ['Ad updated successfully']]);
     }
 
     /**
@@ -81,7 +86,7 @@ class P2PAdController extends Controller
             $ad->status = 'deleted';
             $ad->save();
 
-            return Response::successResponse('Ad deleted');
+            return back()->with(['success' => ['Ad deleted successfully']]);
         });
     }
 }

@@ -36,9 +36,12 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Throwable $e)
     {
-        // ✅ FORCE JSON response by overriding Accept header
-        $request->headers->set('Accept', 'application/json');
-        return $this->handleApiException($request, $e);
+        // Only force JSON for API routes
+        if ($request->is('api/*') || $request->expectsJson()) {
+            return $this->handleApiException($request, $e);
+        }
+
+        return parent::render($request, $e);
     }
 
     /**

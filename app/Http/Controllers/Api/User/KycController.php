@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Helpers\Response;
 use App\Services\YouVerifyService;
 use App\Models\KycVerification;
-use App\Models\KycTier;
+use App\Models\Tier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
@@ -25,8 +25,8 @@ class KycController extends Controller
      */
     public function tiers()
     {
-        $tiers = KycTier::where('status', true)->orderBy('level', 'asc')->get();
-        return Response::success($tiers);
+        $tiers = Tier::active()->orderBy('level')->get()->values();
+        return Response::success($tiers, null);
     }
 
     /**
@@ -35,7 +35,7 @@ class KycController extends Controller
     public function userTier()
     {
         $user = auth()->user();
-        $tier = KycTier::where('level', $user->kyc_tier)->first();
+        $tier = Tier::where('level', $user->kyc_tier)->first();
         
         return Response::success([
             'current_level' => $user->kyc_tier,
