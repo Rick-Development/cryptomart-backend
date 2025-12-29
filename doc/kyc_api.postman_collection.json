@@ -1,0 +1,43 @@
+{
+    "info": {
+        "name": "KYC API",
+        "_postman_id": "kyc-api-collection",
+        "description": "API endpoints for KYC Tiers",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Get KYC Tiers",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "application/json",
+                        "type": "text"
+                    }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/api/kyc/tiers",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "kyc",
+                        "tiers"
+                    ]
+                },
+                "description": "Get all available KYC verification tiers"
+            },
+            "response": []
+        }
+    ],
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://127.0.0.1:8000",
+            "type": "string"
+        }
+    ]
+}

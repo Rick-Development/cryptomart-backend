@@ -23,7 +23,7 @@ class WalletService
             $wallet->save();
 
             OrderTransaction::create([
-                'wallet_id'=>$wallet->id,
+                'user_wallet_id'=>$wallet->id,
                 'type'=>'debit',
                 'amount'=>$amount,
                 'balance_after'=>$wallet->balance,
@@ -50,7 +50,7 @@ class WalletService
             $to->save();
 
             OrderTransaction::create([
-                'wallet_id'=>$from->id,
+                'user_wallet_id'=>$from->id,
                 'type'=>'debit',
                 'amount'=>$amount,
                 'balance_after'=>$from->balance,
@@ -58,7 +58,7 @@ class WalletService
                 'metadata'=>$meta,
             ]);
             OrderTransaction::create([
-                'wallet_id'=>$to->id,
+                'user_wallet_id'=>$to->id,
                 'type'=>'credit',
                 'amount'=>$amount,
                 'balance_after'=>$to->balance,
@@ -70,6 +70,28 @@ class WalletService
         });
     }
 
+    // debit wallet directly (standard payment)
+    public static function debit(int $walletId, string $amount, ?string $reference = null, array $meta = [])
+    {
+        return DB::transaction(function() use($walletId,$amount,$reference,$meta) {
+            $wallet = UserWallet::where('id',$walletId)->lockForUpdate()->firstOrFail();
+            if (bccomp($wallet->balance, $amount, 18) < 0) {
+                throw new \RuntimeException('Insufficient funds');
+            }
+            $wallet->balance = bcsub($wallet->balance, $amount, 18);
+            $wallet->save();
+            OrderTransaction::create([
+                'user_wallet_id'=>$wallet->id,
+                'type'=>'debit',
+                'amount'=>$amount,
+                'balance_after'=>$wallet->balance,
+                'reference'=>$reference,
+                'metadata'=>$meta,
+            ]);
+            return $wallet;
+        });
+    }
+
     // credit wallet directly (admin or external inbound)
     public static function credit(int $walletId, string $amount, ?string $reference = null, array $meta = [])
     {
@@ -78,7 +100,7 @@ class WalletService
             $wallet->balance = bcadd($wallet->balance, $amount, 18);
             $wallet->save();
             OrderTransaction::create([
-                'wallet_id'=>$wallet->id,
+                'user_wallet_id'=>$wallet->id,
                 'type'=>'credit',
                 'amount'=>$amount,
                 'balance_after'=>$wallet->balance,

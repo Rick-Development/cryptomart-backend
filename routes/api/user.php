@@ -303,6 +303,16 @@ Route::prefix("user")->name("api.user.")->group(function () {
             Route::post('name-enquiry', 'nameEnquiry');
             Route::post('transfer', 'transfer');
         });
+
+        // Gift Cards (Reloadly)
+        Route::controller(App\Http\Controllers\Api\V1\User\GiftCardController::class)->prefix('gift-cards')->group(function () {
+            Route::get('/discovery', 'discovery');
+            Route::get('/products', 'products');
+            Route::get('/products/{id}', 'productDetails');
+            Route::get('/fx-rate', 'fxRate');
+            Route::post('/order', 'storeOrder');
+            Route::get('/sync-metadata', 'syncMetadata'); // Internal sync
+        });
     });
 
 

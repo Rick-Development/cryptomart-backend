@@ -62,4 +62,13 @@ return [
         'webhook_key' => '6yNnWj0jXq7VwVujOdHKeISVTSJzadVD2ah9',
     ],
 
+    'reloadly' => [
+        'client_id' => env('RELOADLY_CLIENT_ID'),
+        'client_secret' => env('RELOADLY_CLIENT_SECRET'),
+        'base_url' => env('RELOADLY_ENV', 'sandbox') === 'production' 
+            ? 'https://giftcards.reloadly.com' 
+            : 'https://giftcards-sandbox.reloadly.com',
+        'auth_url' => 'https://auth.reloadly.com/oauth/token',
+    ],
+
 ];

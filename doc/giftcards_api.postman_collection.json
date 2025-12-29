@@ -1,0 +1,212 @@
+{
+    "info": {
+        "name": "Gift Cards (Reloadly) API",
+        "_postman_id": "giftcards-api-collection",
+        "description": "API endpoints for Reloadly Gift Card integration",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Discovery",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "application/json",
+                        "type": "text"
+                    },
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{access_token}}",
+                        "type": "text"
+                    }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/api/user/gift-cards/discovery",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "user",
+                        "gift-cards",
+                        "discovery"
+                    ]
+                },
+                "description": "Fetch categories, countries, and featured discounts"
+            },
+            "response": []
+        },
+        {
+            "name": "List Products",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "application/json",
+                        "type": "text"
+                    },
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{access_token}}",
+                        "type": "text"
+                    }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/api/user/gift-cards/products?countryCode=US&productCategoryId=1",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "user",
+                        "gift-cards",
+                        "products"
+                    ],
+                    "query": [
+                        {
+                            "key": "countryCode",
+                            "value": "US"
+                        },
+                        {
+                            "key": "productCategoryId",
+                            "value": "1"
+                        }
+                    ]
+                },
+                "description": "List products with optional filters (countryCode, productCategoryId, productName)"
+            },
+            "response": []
+        },
+        {
+            "name": "Product Details",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "application/json",
+                        "type": "text"
+                    },
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{access_token}}",
+                        "type": "text"
+                    }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/api/user/gift-cards/products/1",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "user",
+                        "gift-cards",
+                        "products",
+                        "1"
+                    ]
+                },
+                "description": "Get detailed product info and redemption instructions"
+            },
+            "response": []
+        },
+        {
+            "name": "FX Rate Preview",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "application/json",
+                        "type": "text"
+                    },
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{access_token}}",
+                        "type": "text"
+                    }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/api/user/gift-cards/fx-rate?currencyCode=USD&amount=10",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "user",
+                        "gift-cards",
+                        "fx-rate"
+                    ],
+                    "query": [
+                        {
+                            "key": "currencyCode",
+                            "value": "USD"
+                        },
+                        {
+                            "key": "amount",
+                            "value": "10"
+                        }
+                    ]
+                },
+                "description": "Check the NGN cost for a specific gift card amount"
+            },
+            "response": []
+        },
+        {
+            "name": "Place Order",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "application/json",
+                        "type": "text"
+                    },
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{access_token}}",
+                        "type": "text"
+                    },
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json",
+                        "type": "text"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"product_id\": 1,\n  \"wallet_id\": 1,\n  \"quantity\": 1,\n  \"unit_price\": 10,\n  \"sender_name\": \"John Doe\",\n  \"recipient_email\": \"recipient@example.com\"\n}"
+                },
+                "url": {
+                    "raw": "{{base_url}}/api/user/gift-cards/order",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "user",
+                        "gift-cards",
+                        "order"
+                    ]
+                },
+                "description": "Purchase a gift card using wallet balance"
+            },
+            "response": []
+        }
+    ],
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://127.0.0.1:8000",
+            "type": "string"
+        },
+        {
+            "key": "access_token",
+            "value": "",
+            "type": "string"
+        }
+    ]
+}

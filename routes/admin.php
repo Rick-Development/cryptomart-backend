@@ -43,6 +43,7 @@ use App\Http\Controllers\Admin\SalaryDisbursementController;
 use App\Http\Controllers\Admin\PaymentGatewayCurrencyController;
 use App\Http\Controllers\Admin\SalaryDisbursementLogsController;
 use App\Http\Controllers\Admin\KycTierController;
+use App\Http\Controllers\Admin\GiftCardController;
 
 // All Admin Route Is Here
 Route::prefix('admin')->name('admin.')->group(function () {
@@ -484,6 +485,14 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/users', 'index')->name('users');
             Route::post('/users/{id}/recalculate', 'recalculate')->name('recalculate');
             Route::post('/users/{id}/flag', 'flagUser')->name('flag');
+        });
+
+        // Gift Card Section
+        Route::controller(GiftCardController::class)->prefix('gift-card')->name('gift.card.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/products', 'products')->name('products');
+            Route::post('/sync-metadata', 'syncMetadata')->name('sync.metadata');
+            Route::post('/toggle-status', 'toggleStatus')->name('status.toggle');
         });
     });
 });

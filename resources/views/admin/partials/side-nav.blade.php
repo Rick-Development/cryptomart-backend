@@ -182,6 +182,11 @@
                             'route'     => "admin.edusave.index",
                             'icon'      => "menu-icon las la-graduation-cap",
                         ],
+                        [
+                            'title'     => "Gift Cards",
+                            'route'     => "admin.gift.card.index",
+                            'icon'      => "menu-icon las la-gift",
+                        ],
                         'dropdown'      => [
                             [
                                 'title'     => "P2P Marketplace",
