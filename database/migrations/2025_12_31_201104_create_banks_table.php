@@ -11,8 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('virtual_accounts', function (Blueprint $table) {
-            $table->string('provider')->nullable()->after('account_type');
+        Schema::create('banks', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('code')->unique();
+            $table->string('slug')->nullable();
+            $table->boolean('is_active')->default(true);
+            $table->timestamps();
         });
     }
 
@@ -21,8 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('virtual_accounts', function (Blueprint $table) {
-            //
-        });
+        Schema::dropIfExists('banks');
     }
 };

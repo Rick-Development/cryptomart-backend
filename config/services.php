@@ -71,4 +71,10 @@ return [
         'auth_url' => 'https://auth.reloadly.com/oauth/token',
     ],
 
+    'safeHeaven' => [
+        'client_id' => env('SAFE_HEAVEN_CLIENTID'),
+        'client_assertion' => env('SAFE_HEAVEN_CLIENT_ASSERTION'),
+        'api_url' => env('SAFE_HEAVEN_URL'),
+    ],
+
 ];

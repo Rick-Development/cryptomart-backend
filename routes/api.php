@@ -80,3 +80,6 @@ Route::middleware('auth:api')->prefix('kyc')->group(function () {
 
 // YouVerify Webhook
 Route::post('webhook/youverify', [\App\Http\Controllers\Api\User\WebhookController::class, 'handleYouVerify'])->name('webhook.youverify');
+
+// SafeHaven Webhook
+Route::post('webhook/safehaven', [\App\Http\Controllers\Api\User\WebhookController::class, 'handleSafeHaven'])->name('webhook.safehaven');

@@ -14,9 +14,9 @@ class ApiConnectionHelper{
 
 
     public function __construct() {
-        $this->apiClientId = config('services.safeHeaven.client_id'); // Load from config
-        $this->apiClientAssertion = config('services.safeHeaven.client_assertion'); // Load from config
-        $this->apiAuthUrl = config('services.safeHeaven.api_url'); // Load from config
+        $this->apiClientId = trim(config('services.safeHeaven.client_id'));
+        $this->apiClientAssertion = trim(config('services.safeHeaven.client_assertion'));
+        $this->apiAuthUrl = rtrim(config('services.safeHeaven.api_url'), '/');
     }
 
 
@@ -147,6 +147,7 @@ public function get($url){
     ));
 
     $response = curl_exec($curl);
+    Log::info("SafeHaven GET Response", ['url' => $this->apiAuthUrl . $url, 'response' => $response]);
 
     curl_close($curl);
     return $response;
@@ -179,15 +180,16 @@ public function post($url, array $data) {
     ));
     
     $response = curl_exec($curl);
-    // $response = json_decode( $response,true);
-    
-    // Log the response
-    // Log::info($response);
+    $err = curl_error($curl);
+
+    if ($err) {
+        Log::error("SafeHaven POST Error: " . $err, ['url' => $this->apiAuthUrl . $url]);
+    }
+
+    Log::info("SafeHaven POST Response", ['url' => $this->apiAuthUrl . $url, 'response' => $response]);
     
     curl_close($curl);
 
-    // {"status":false,"description":"Missing information, please check the errors","errors":{"email":"The email field must contain a valid email address."}} 
-    
     return $response;
 }
 

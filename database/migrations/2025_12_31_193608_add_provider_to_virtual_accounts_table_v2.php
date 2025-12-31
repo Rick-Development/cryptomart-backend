@@ -22,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('virtual_accounts', function (Blueprint $table) {
-            //
+            $table->dropColumn('provider');
         });
     }
 };

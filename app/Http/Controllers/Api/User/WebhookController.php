@@ -6,16 +6,22 @@ use App\Http\Controllers\Controller;
 use App\Models\KycVerification;
 use App\Models\User;
 use App\Services\YouVerifyService;
+use App\Services\SafeHavenService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Exception;
 
 class WebhookController extends Controller
 {
     protected $youVerifyService;
+    protected $safeHavenService;
 
-    public function __construct(YouVerifyService $youVerifyService)
-    {
+    public function __construct(
+        YouVerifyService $youVerifyService,
+        SafeHavenService $safeHavenService
+    ) {
         $this->youVerifyService = $youVerifyService;
+        $this->safeHavenService = $safeHavenService;
     }
 
     /**
@@ -83,5 +89,18 @@ class WebhookController extends Controller
         }
 
         return response()->json(['status' => 'success'], 200);
+    }
+
+    /**
+     * Handle SafeHaven Settlement Webhook Callbacks.
+     */
+    public function handleSafeHaven(Request $request)
+    {
+        try {
+            $this->safeHavenService->handleSettlement($request->all());
+            return response()->json(['status' => 'success'], 200);
+        } catch (Exception $e) {
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+        }
     }
 }

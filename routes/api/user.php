@@ -299,7 +299,8 @@ Route::prefix("user")->name("api.user.")->group(function () {
 
         // SafeHaven Integration
         Route::controller(App\Http\Controllers\Api\V1\User\SafeHavenController::class)->prefix('safehaven')->group(function () {
-            Route::get('virtual-account', 'virtualAccount');
+            Route::get('sub-account', 'virtualAccount');
+            Route::get('banks', 'banks');
             Route::post('name-enquiry', 'nameEnquiry');
             Route::post('transfer', 'transfer');
         });

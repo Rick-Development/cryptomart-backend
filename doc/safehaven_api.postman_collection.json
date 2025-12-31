@@ -7,7 +7,7 @@
     },
     "item": [
         {
-            "name": "Get Virtual Account",
+            "name": "Get Sub-Account",
             "request": {
                 "method": "GET",
                 "header": [
@@ -23,7 +23,7 @@
                     }
                 ],
                 "url": {
-                    "raw": "{{base_url}}/api/user/safehaven/virtual-account",
+                    "raw": "{{base_url}}/api/user/safehaven/sub-account",
                     "host": [
                         "{{base_url}}"
                     ],
@@ -31,10 +31,10 @@
                         "api",
                         "user",
                         "safehaven",
-                        "virtual-account"
+                        "sub-account"
                     ]
                 },
-                "description": "Get or create SafeHaven NGN virtual account"
+                "description": "Get or create SafeHaven NGN fixed sub-account"
             },
             "response": []
         },
@@ -117,6 +117,36 @@
                     ]
                 },
                 "description": "Initiate NGN transfer to external bank account"
+            },
+            "response": []
+        },
+        {
+            "name": "Simulate Settlement Webhook",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "application/json",
+                        "type": "text"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"account_number\": \"0123456789\",\n  \"amount\": 10000,\n  \"session_id\": \"test-session-123\",\n  \"status\": \"Success\"\n}"
+                },
+                "url": {
+                    "raw": "{{base_url}}/api/webhook/safehaven",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "webhook",
+                        "safehaven"
+                    ]
+                },
+                "description": "Simulate inbound SafeHaven settlement (funds NGN wallet)"
             },
             "response": []
         }

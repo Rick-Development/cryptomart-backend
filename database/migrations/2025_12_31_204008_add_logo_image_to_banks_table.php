@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('virtual_accounts', function (Blueprint $table) {
-            $table->string('provider')->nullable()->after('account_type');
+        Schema::table('banks', function (Blueprint $table) {
+            $table->string('logo_image')->nullable()->after('slug');
         });
     }
 
@@ -21,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('virtual_accounts', function (Blueprint $table) {
-            //
+        Schema::table('banks', function (Blueprint $table) {
+            $table->dropColumn('logo_image');
         });
     }
 };
