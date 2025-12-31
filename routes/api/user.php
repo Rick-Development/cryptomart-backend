@@ -307,6 +307,8 @@ Route::prefix("user")->name("api.user.")->group(function () {
         // Gift Cards (Reloadly)
         Route::controller(App\Http\Controllers\Api\V1\User\GiftCardController::class)->prefix('gift-cards')->group(function () {
             Route::get('/discovery', 'discovery');
+            Route::get('/countries', 'countries');
+            Route::get('/countries/{isoCode}', 'countryDetails');
             Route::get('/products', 'products');
             Route::get('/products/{id}', 'productDetails');
             Route::get('/fx-rate', 'fxRate');

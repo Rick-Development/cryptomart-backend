@@ -39,6 +39,71 @@
             "response": []
         },
         {
+            "name": "Get Countries",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "application/json",
+                        "type": "text"
+                    },
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{access_token}}",
+                        "type": "text"
+                    }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/api/user/gift-cards/countries",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "user",
+                        "gift-cards",
+                        "countries"
+                    ]
+                },
+                "description": "Retrieve the details of every country where a gift card order can be made."
+            },
+            "response": []
+        },
+        {
+            "name": "Get Country Details",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "application/json",
+                        "type": "text"
+                    },
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{access_token}}",
+                        "type": "text"
+                    }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/api/user/gift-cards/countries/US",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "user",
+                        "gift-cards",
+                        "countries",
+                        "US"
+                    ]
+                },
+                "description": "Retrieve the details of a country by its ISO code."
+            },
+            "response": []
+        },
+        {
             "name": "List Products",
             "request": {
                 "method": "GET",

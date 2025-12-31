@@ -48,6 +48,32 @@ class GiftCardController extends Controller
     }
 
     /**
+     * Get all countries (Live API)
+     */
+    public function countries()
+    {
+        try {
+            $countries = $this->reloadly->getCountries();
+            return Response::successResponse('Countries fetched', ['countries' => $countries]);
+        } catch (Exception $e) {
+            return Response::errorResponse('Failed to fetch countries: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Get country details by ISO code (Live API)
+     */
+    public function countryDetails($isoCode)
+    {
+        try {
+            $country = $this->reloadly->getCountry($isoCode);
+            return Response::successResponse('Country details', ['country' => $country]);
+        } catch (Exception $e) {
+            return Response::errorResponse('Failed to fetch country details: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * List products with filters
      */
     public function products(Request $request)
