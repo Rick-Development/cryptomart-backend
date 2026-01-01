@@ -17,12 +17,12 @@ class Authenticate extends Middleware
             return null; // Laravel handles this by throwing AuthenticationException which Handler renders as JSON
         }
 
-        // For web users
-        if (trim($request->route()->getPrefix(), '/') === 'admin') {
+        // For admin users
+        if ($request->is('admin') || $request->is('admin/*')) {
             return route('admin.login');
         }
 
-        return route('login');
+        return route('user.login');
     }
 
 }

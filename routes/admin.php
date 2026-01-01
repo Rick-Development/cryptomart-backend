@@ -487,13 +487,14 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::post('/users/{id}/flag', 'flagUser')->name('flag');
         });
 
-        // Gift Card Section
-        Route::controller(GiftCardController::class)->prefix('gift-card')->name('gift.card.')->group(function () {
-            Route::get('/', 'index')->name('index');
-            Route::get('/products', 'products')->name('products');
-            Route::post('/sync-metadata', 'syncMetadata')->name('sync.metadata');
-            Route::post('/toggle-status', 'toggleStatus')->name('status.toggle');
-        });
+    });
+    
+    // Gift Card Section
+    Route::controller(GiftCardController::class)->prefix('gift-card')->name('gift.card.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/products', 'products')->name('products');
+        Route::post('/sync-metadata', 'syncMetadata')->name('sync.metadata');
+        Route::post('/toggle-status', 'toggleStatus')->name('status.toggle');
     });
 });
 

@@ -24,7 +24,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 // Fallback login route to prevent 500 RouteNotFoundException
 Route::get('/login', function () {
     return response()->json(['message' => 'Unauthenticated.'], 401);
-})->name('login');
+})->name('api.login');
 
 // Savings (Piggyvest) Routes
 Route::middleware('auth:api')->prefix('v1/savings')->group(function () {

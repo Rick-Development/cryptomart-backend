@@ -25,6 +25,8 @@ Route::middleware(['guest','admin.login.guard'])->prefix('admin')->name('admin.'
     Route::post('password/update',[ResetPasswordController::class,'reset'])->name('password.update');
 });
 
+Route::get('login',[UserLoginController::class,"showLoginForm"])->name('login');
+
 Route::name('user.')->group(function(){
     Route::get('login',[UserLoginController::class,"showLoginForm"])->name('login');
     Route::post('login',[UserLoginController::class,"login"])->name('login.submit');

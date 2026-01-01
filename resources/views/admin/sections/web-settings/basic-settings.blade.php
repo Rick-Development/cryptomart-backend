@@ -78,35 +78,82 @@
                             <option selected disabled>{{ __("Select Timezone") }}</option>
                         </select>
                     </div>
-                    <div class="col-xl-4 col-lg-4 form-group">
-                        @include('admin.components.form.input',[
-                            'label'         => __("YouVerify API Key")."*",
-                            'type'          => "text",
-                            'class'         => "form--control",
-                            'placeholder'   => __("Write Here")."...",
-                            'name'          => "youverify_key",
-                            'value'         => old('youverify_key',$basic_settings->youverify_key),
-                        ])
+                    <div class="col-xl-12 col-lg-12 form-group">
+                        <label>{{ __("KYC Provider") }}*</label>
+                        <select name="kyc_provider" class="form--control select2-basic" id="kyc_provider_select">
+                            <option value="youverify" {{ old('kyc_provider', $basic_settings->kyc_provider) == 'youverify' ? 'selected' : '' }}>{{ __("YouVerify") }}</option>
+                            <option value="safehaven" {{ old('kyc_provider', $basic_settings->kyc_provider) == 'safehaven' ? 'selected' : '' }}>{{ __("SafeHaven") }}</option>
+                        </select>
                     </div>
-                    <div class="col-xl-4 col-lg-4 form-group">
-                        @include('admin.components.form.input',[
-                            'label'         => __("YouVerify Public Key")."*",
-                            'type'          => "text",
-                            'class'         => "form--control",
-                            'placeholder'   => __("Write Here")."...",
-                            'name'          => "youverify_public_key",
-                            'value'         => old('youverify_public_key',$basic_settings->youverify_public_key),
-                        ])
+
+                    <div class="row kyc-provider-fields" id="youverify_fields" style="{{ old('kyc_provider', $basic_settings->kyc_provider) == 'youverify' ? '' : 'display:none;' }}">
+                        <div class="col-xl-4 col-lg-4 form-group">
+                            @include('admin.components.form.input',[
+                                'label'         => __("YouVerify API Key")."*",
+                                'type'          => "text",
+                                'class'         => "form--control",
+                                'placeholder'   => __("Write Here")."...",
+                                'name'          => "youverify_key",
+                                'value'         => old('youverify_key',$basic_settings->youverify_key),
+                            ])
+                        </div>
+                        <div class="col-xl-4 col-lg-4 form-group">
+                            @include('admin.components.form.input',[
+                                'label'         => __("YouVerify Public Key")."*",
+                                'type'          => "text",
+                                'class'         => "form--control",
+                                'placeholder'   => __("Write Here")."...",
+                                'name'          => "youverify_public_key",
+                                'value'         => old('youverify_public_key',$basic_settings->youverify_public_key),
+                            ])
+                        </div>
+                        <div class="col-xl-4 col-lg-4 form-group">
+                            @include('admin.components.form.input',[
+                                'label'         => __("YouVerify Webhook Secret")."*",
+                                'type'          => "text",
+                                'class'         => "form--control",
+                                'placeholder'   => __("Write Here")."...",
+                                'name'          => "youverify_webhook_key",
+                                'value'         => old('youverify_webhook_key',$basic_settings->youverify_webhook_key),
+                            ])
+                        </div>
                     </div>
-                    <div class="col-xl-4 col-lg-4 form-group">
-                        @include('admin.components.form.input',[
-                            'label'         => __("YouVerify Webhook Secret")."*",
-                            'type'          => "text",
-                            'class'         => "form--control",
-                            'placeholder'   => __("Write Here")."...",
-                            'name'          => "youverify_webhook_key",
-                            'value'         => old('youverify_webhook_key',$basic_settings->youverify_webhook_key),
-                        ])
+
+                    <div class="row kyc-provider-fields" id="safehaven_fields" style="{{ old('kyc_provider', $basic_settings->kyc_provider) == 'safehaven' ? '' : 'display:none;' }}">
+                        <div class="col-xl-4 col-lg-4 form-group">
+                            @include('admin.components.form.input',[
+                                'label'         => __("SafeHaven Client ID")."*",
+                                'type'          => "text",
+                                'class'         => "form--control",
+                                'placeholder'   => __("Write Here")."...",
+                                'name'          => "safehaven_client_id",
+                                'value'         => old('safehaven_client_id',$basic_settings->safehaven_client_id),
+                            ])
+                        </div>
+                        <div class="col-xl-4 col-lg-4 form-group">
+                            @include('admin.components.form.input',[
+                                'label'         => __("SafeHaven API URL")."*",
+                                'type'          => "text",
+                                'class'         => "form--control",
+                                'placeholder'   => __("https://api.safehavenmfb.com")."...",
+                                'name'          => "safehaven_api_url",
+                                'value'         => old('safehaven_api_url',$basic_settings->safehaven_api_url),
+                            ])
+                        </div>
+                        <div class="col-xl-4 col-lg-4 form-group">
+                            @include('admin.components.form.input',[
+                                'label'         => __("SafeHaven Debit Account Number")."*",
+                                'type'          => "text",
+                                'class'         => "form--control",
+                                'placeholder'   => __("Write Here")."...",
+                                'name'          => "safehaven_debit_account",
+                                'value'         => old('safehaven_debit_account',$basic_settings->safehaven_debit_account),
+                            ])
+                        </div>
+                        <div class="col-xl-12 col-lg-12 form-group">
+                            <label>{{ __("SafeHaven Client Assertion") }}*</label>
+                            <textarea name="safehaven_client_assertion" class="form--control" placeholder="{{ __("Write Here") }}...">{{ old('safehaven_client_assertion',$basic_settings->safehaven_client_assertion) }}</textarea>
+                        </div>
                     </div>
                 </div>
                 <div class="col-xl-12 col-lg-12">
@@ -225,6 +272,16 @@
             getTimeZones("{{ setRoute('global.timezones') }}");
 
             switcherAjax("{{ setRoute('admin.web.settings.basic.settings.activation.update') }}");
+
+            $("#kyc_provider_select").on("change", function() {
+                var provider = $(this).val();
+                $(".kyc-provider-fields").hide();
+                if (provider == 'youverify') {
+                    $("#youverify_fields").show();
+                } else if (provider == 'safehaven') {
+                    $("#safehaven_fields").show();
+                }
+            });
         });
     </script>
 @endpush

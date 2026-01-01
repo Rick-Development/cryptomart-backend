@@ -3,8 +3,9 @@ namespace App\Http\Helpers\SafeHeaven;
 
 use App\Http\Helpers\SafeHeaven\ApiConnectionHelper;
 
-class IdentityCheckHelper extends ApiConnectionHelper{
-    
+class IdentityCheckHelper extends ApiConnectionHelper
+{
+
     public function initiateVerification($data){
         $url = '/identity/v2';
         $response = $this->post($url, $data);
@@ -18,7 +19,5 @@ class IdentityCheckHelper extends ApiConnectionHelper{
         $decodedResponse = json_decode($response,true);
         return $decodedResponse;
     }  
-
-    
 
 }

@@ -20,14 +20,14 @@ class YouVerifyService
 
     public function __construct()
     {
-        // Try common config patterns, fall back to services config if needed
-        $configUrl = config('youverify.base_url', config('services.youverify.base_url', 'https://api.youverify.co/v2/'));
-        $configKey = config('youverify.secret_key', config('services.youverify.key'));
-        $configPublicKey = config('youverify.public_key', config('services.youverify.public_key'));
-        $configWebhookKey = config('youverify.webhook_key', config('services.youverify.webhook_key'));
+        // Prioritize services.php config which was already set up correctly
+        $configUrl = config('services.youverify.base_url', config('youverify.base_url', 'https://api.youverify.co/v2/'));
+        $configKey = config('services.youverify.key', config('youverify.secret_key'));
+        $configPublicKey = config('services.youverify.public_key', config('youverify.public_key'));
+        $configWebhookKey = config('services.youverify.webhook_key', config('youverify.webhook_secret'));
 
         // Check for Admin Override in database
-        $basicSettings = BasicSettings::first();
+        $basicSettings = \App\Models\Admin\BasicSettings::first();
         
         $this->baseUrl   = rtrim($configUrl, '/');
         $this->secretKey = ($basicSettings && $basicSettings->youverify_key) ? $basicSettings->youverify_key : $configKey;
@@ -47,6 +47,7 @@ class YouVerifyService
             ->timeout($this->timeout)
             ->withHeaders([
                 'token' => $this->secretKey,
+                'X-Youverify-Token' => $this->secretKey,
                 'Content-Type' => 'application/json',
             ])
             ->acceptJson();
@@ -71,8 +72,32 @@ class YouVerifyService
         }
 
         try {
-            $response = $this->client()->post('identity/ng/bvn', $payload);
-            return $response->json();
+            $response = $this->client()->post('api/identity/ng/bvn', $payload);
+            
+            if ($response->failed()) {
+                \Illuminate\Support\Facades\Log::error("YouVerify BVN Failed", [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                    'payload' => $payload
+                ]);
+            }
+
+            $res = $response->json();
+            \Illuminate\Support\Facades\Log::info("YouVerify BVN Response", [
+                'status' => $response->status(),
+                'body' => $response->body(),
+                'json' => $res
+            ]);
+
+            if ($response->status() === 404) {
+                return ['status' => 'error', 'message' => 'BVN Verification endpoint not found (404). Please check API version/base URL.'];
+            }
+
+            if ($response->failed()) {
+                return ['status' => 'error', 'message' => $res['message'] ?? $res['error'] ?? 'Verification service error (' . $response->status() . ')'];
+            }
+            
+            return $res ?? ['status' => 'error', 'message' => 'Empty response from verification service'];
         } catch (Exception $e) {
             throw $e;
         }
@@ -89,7 +114,7 @@ class YouVerifyService
         ];
 
         try {
-            $response = $this->client()->post('identity/ng/nin', $payload);
+            $response = $this->client()->post('api/identity/ng/nin', $payload);
             return $response->json();
         } catch (Exception $e) {
             throw $e;
@@ -107,7 +132,7 @@ class YouVerifyService
         ];
 
         try {
-            $response = $this->client()->post('identity/otp/verify', $payload);
+            $response = $this->client()->post('api/identity/otp/verify', $payload);
             return $response->json();
         } catch (Exception $e) {
             throw $e;
@@ -120,7 +145,7 @@ class YouVerifyService
     public function verifyAddress(array $data)
     {
         try {
-            $response = $this->client()->post('identity/address-verification', $data);
+            $response = $this->client()->post('api/identity/address-verification', $data);
             return $response->json();
         } catch (Exception $e) {
             throw $e;
@@ -133,7 +158,7 @@ class YouVerifyService
     public function initiateWorkflow($payload)
     {
         try {
-            $response = $this->client()->post('identity/vforms/initiate', $payload);
+            $response = $this->client()->post('api/identity/vforms/initiate', $payload);
 
             if ($response->successful()) {
                 return $response->json();

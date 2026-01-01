@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Helpers\Response;
 use App\Models\UserWallet;
 use App\Models\Transaction;
+use App\Models\OrderTransaction;
 use Illuminate\Http\Request;
 
 class WalletController extends Controller
@@ -61,8 +62,8 @@ class WalletController extends Controller
             return Response::error('Wallet not found for ' . $code, [], 404);
         }
 
-        $transactions = Transaction::where('user_id', $user->id)
-            ->where('wallet_id', $wallet->id)
+        // Fetch OrderTransaction (Wallet Ledger) instead of Transaction (Payment Gateway Logs)
+        $transactions = OrderTransaction::where('user_wallet_id', $wallet->id)
             ->latest()
             ->paginate(20);
 

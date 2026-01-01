@@ -49,23 +49,36 @@ class SafeHavenController extends Controller
                 ->first();
 
             if (!$account) {
-                // 2. Create if not exists
+                // 2. KYC Check (Tier 1 required)
+                if ($user->kyc_tier < 1) {
+                    return Response::errorResponse('Please complete KYC Tier 1 verification (BVN) to generate your permanent account number.', [
+                        'action' => 'kyc_tier_1',
+                        'type' => 'kyc_required'
+                    ], 403);
+                }
+
+                // 3. Create if not exists
                 $data = $this->safeHaven->createSubAccount($user);
                 
                 $account = VirtualAccounts::create([
                     'user_id' => $user->id,
-                    'customer_id' => $data['id'] ?? null,
+                    'customer_id' => $data['_id'] ?? $data['id'] ?? null,
                     'customer' => $data['accountName'] ?? $user->fullname,
-                    'account_id' => $data['id'] ?? null,
+                    'account_id' => $data['_id'] ?? $data['id'] ?? null,
                     'account_number' => $data['accountNumber'] ?? null,
                     'account_name' => $data['accountName'] ?? $user->fullname,
                     'bank_name' => 'SafeHaven Microfinance Bank',
-                    'bank_code' => '000000', // Update with actual if known, or leave as placeholder
+                    'bank_code' => '090286', // SafeHaven MFB Code
                     'currency' => 'NGN',
                     'account_type' => 'Sub-Account',
                     'status' => 'active',
                     'provider' => 'safehaven'
                 ]);
+            }
+
+            // Ensure provider is set if it was missing (migration fix)
+            if (empty($account->provider)) {
+                $account->update(['provider' => 'safehaven']);
             }
 
             return Response::successResponse('Naira account details fetched', [
@@ -124,7 +137,7 @@ class SafeHavenController extends Controller
 
             $reference = 'transfer:' . Str::random(12);
 
-            return DB::transaction(function () use ($wallet, $amount, $request, $reference) {
+            return DB::transaction(function () use ($wallet, $amount, $request, $reference, $user) {
                 // 2. Debit Wallet
                 \App\Services\WalletService::debit($wallet->id, (string)$amount, $reference, [
                     'type' => 'bank_transfer',
@@ -132,14 +145,29 @@ class SafeHavenController extends Controller
                     'account_number' => $request->account_number
                 ]);
 
-                // 3. Call SafeHaven API
+                // 3. Perform Name Enquiry to get Session ID (Reference)
+                $enquiry = $this->safeHaven->nameEnquiry($request->bank_code, $request->account_number);
+                $nameEnquiryRef = $enquiry['sessionId'] ?? $enquiry['data']['sessionId'] ?? null;
+
+                if (!$nameEnquiryRef) {
+                    throw new Exception("Failed to generate name enquiry reference.");
+                }
+
+                // 4. Call SafeHaven Transfer API
                 $payload = [
+                    "saveBeneficiary" => false,
+                    "nameEnquiryReference" => $nameEnquiryRef,
+                    "debitAccountNumber" => $user->virtualAccounts()->where('provider', 'safehaven')->value('account_number'), // Get user's sub-account number
+                    "beneficiaryBankCode" => $request->bank_code,
+                    "beneficiaryAccountNumber" => $request->account_number,
                     "amount" => (float)$amount,
-                    "bankCode" => $request->bank_code,
-                    "accountNumber" => $request->account_number,
                     "narration" => $request->narration ?? "Withdrawal from wallet",
-                    "externalReference" => $reference
+                    "paymentReference" => $reference
                 ];
+
+                if (!$payload['debitAccountNumber']) {
+                     throw new Exception("User does not have a SafeHaven sub-account to debit.");
+                }
 
                 try {
                     $result = $this->safeHaven->transfer($payload);

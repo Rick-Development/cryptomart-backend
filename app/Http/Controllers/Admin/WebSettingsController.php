@@ -44,6 +44,11 @@ class WebSettingsController extends Controller
             'youverify_key'     => 'nullable|string',
             'youverify_public_key'  => 'nullable|string',
             'youverify_webhook_key' => 'nullable|string',
+            'kyc_provider'      => 'required|string|in:youverify,safehaven',
+            'safehaven_client_id' => 'nullable|string',
+            'safehaven_client_assertion' => 'nullable|string',
+            'safehaven_api_url' => 'nullable|string',
+            'safehaven_debit_account' => 'nullable|string',
         ]);
 
         $validated = $validator->validate();

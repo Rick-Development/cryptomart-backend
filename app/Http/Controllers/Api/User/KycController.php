@@ -14,10 +14,24 @@ use Illuminate\Support\Facades\Log;
 class KycController extends Controller
 {
     protected $youVerifyService;
+    protected $safeHavenKycService;
 
-    public function __construct(YouVerifyService $youVerifyService)
+    public function __construct(YouVerifyService $youVerifyService, \App\Services\SafeHavenKycService $safeHavenKycService)
     {
         $this->youVerifyService = $youVerifyService;
+        $this->safeHavenKycService = $safeHavenKycService;
+    }
+
+    /**
+     * Get the active KYC service provider based on admin settings.
+     */
+    protected function getKycService()
+    {
+        $basicSettings = \App\Models\Admin\BasicSettings::first();
+        if ($basicSettings->kyc_provider === 'safehaven') {
+            return $this->safeHavenKycService;
+        }
+        return $this->youVerifyService;
     }
 
     /**
@@ -64,17 +78,20 @@ class KycController extends Controller
                 return Response::error(['You are already at Tier 1 or higher']);
             }
 
-            // Convert uploaded image to base64 for YouVerify
-            $selfieBase64 = null;
+            // Convert uploaded image to base64/data-uri
+            $selfieDataUri = null;
             if ($request->hasFile('selfie')) {
                 $image = $request->file('selfie');
-                $selfieBase64 = base64_encode(file_get_contents($image->getRealPath()));
+                $mimeType = $image->getMimeType();
+                $base64 = base64_encode(file_get_contents($image->getRealPath()));
+                $selfieDataUri = "data:{$mimeType};base64,{$base64}";
             }
 
-            $result = $this->youVerifyService->verifyBvn($request->bvn, $selfieBase64);
+            $service = $this->getKycService();
+            $result = $service->verifyBvn($request->bvn, $selfieDataUri);
 
             if (isset($result['status']) && ($result['status'] === 'success' || $result['status'] === 'pending')) {
-                $transactionId = $result['data']['id'] ?? null;
+                $transactionId = $result['data']['id'] ?? $result['data']['_id'] ?? null;
                 $reference = 'KYC_T1_' . $user->id . '_' . time();
 
                 KycVerification::create([
@@ -83,16 +100,17 @@ class KycController extends Controller
                     'transaction_id' => $transactionId,
                     'level' => 1,
                     'status' => 'pending',
-                    'data' => $result['data'] ?? null
+                    'data' => array_merge(['bvn' => $request->bvn, 'provider' => $service instanceof \App\Services\SafeHavenKycService ? 'safehaven' : 'youverify'], (array)($result['data'] ?? []))
                 ]);
 
                 return Response::success([
-                    'message' => 'BVN initiation successful. OTP sent to your registered phone number.',
+                    'message' => $result['message'] ?? 'BVN initiation successful. OTP sent to your registered phone number.',
                     'transaction_id' => $transactionId,
                     'reference' => $reference
                 ]);
             }
 
+            Log::warning("BVN Initiation Failed", ['result' => $result]);
             return Response::error([$result['message'] ?? 'Failed to initiate BVN verification']);
 
         } catch (\Exception $e) {
@@ -125,7 +143,12 @@ class KycController extends Controller
                 return Response::error(['Invalid transaction ID']);
             }
 
-            $result = $this->youVerifyService->submitOtp($request->transaction_id, $request->otp);
+            $service = $this->getKycService();
+            if ($service instanceof \App\Services\SafeHavenKycService) {
+                $result = $service->submitOtp($request->transaction_id, $request->otp, 'BVN');
+            } else {
+                $result = $service->submitOtp($request->transaction_id, $request->otp);
+            }
 
             if (isset($result['status']) && $result['status'] === 'success') {
                 $user->update([
@@ -135,7 +158,10 @@ class KycController extends Controller
 
                 $verification->update([
                     'status' => 'verified',
-                    'data' => array_merge((array)$verification->data, ['verification_result' => $result['data'] ?? null])
+                    'data' => array_merge((array)$verification->data, [
+                        'verification_result' => $result['data'] ?? null,
+                        'otp' => $request->otp
+                    ])
                 ]);
 
                 return Response::success(['message' => 'Tier 1 verification successful!']);
@@ -172,12 +198,11 @@ class KycController extends Controller
                 return Response::error(['You are already at Tier 2 or higher']);
             }
 
-            // In some cases, NIN verification might require DOB in payload. 
-            // My service method is simple but I can expand it if needed.
-            $result = $this->youVerifyService->verifyNin($request->nin);
+            $service = $this->getKycService();
+            $result = $service->verifyNin($request->nin);
 
             if (isset($result['status']) && ($result['status'] === 'success' || $result['status'] === 'pending')) {
-                $transactionId = $result['data']['id'] ?? null;
+                $transactionId = $result['data']['id'] ?? $result['data']['_id'] ?? null;
                 $reference = 'KYC_T2_' . $user->id . '_' . time();
 
                 KycVerification::create([
@@ -186,11 +211,11 @@ class KycController extends Controller
                     'transaction_id' => $transactionId,
                     'level' => 2,
                     'status' => 'pending',
-                    'data' => array_merge(['dob' => $request->dob], (array)($result['data'] ?? []))
+                    'data' => array_merge(['dob' => $request->dob, 'provider' => $service instanceof \App\Services\SafeHavenKycService ? 'safehaven' : 'youverify'], (array)($result['data'] ?? []))
                 ]);
 
                 return Response::success([
-                    'message' => 'NIN initiation successful. OTP sent to your NIN-linked phone number.',
+                    'message' => $result['message'] ?? 'NIN initiation successful. OTP sent to your NIN-linked phone number.',
                     'transaction_id' => $transactionId,
                     'reference' => $reference
                 ]);
@@ -230,14 +255,22 @@ class KycController extends Controller
                 return Response::error(['Invalid transaction ID for Tier 2']);
             }
 
-            $result = $this->youVerifyService->submitOtp($request->transaction_id, $request->otp);
+            $service = $this->getKycService();
+            if ($service instanceof \App\Services\SafeHavenKycService) {
+                $result = $service->submitOtp($request->transaction_id, $request->otp, 'NIN');
+            } else {
+                $result = $service->submitOtp($request->transaction_id, $request->otp);
+            }
 
             if (isset($result['status']) && $result['status'] === 'success') {
                 $user->update(['kyc_tier' => 2]);
 
                 $verification->update([
                     'status' => 'verified',
-                    'data' => array_merge((array)$verification->data, ['verification_result' => $result['data'] ?? null])
+                    'data' => array_merge((array)$verification->data, [
+                        'verification_result' => $result['data'] ?? null,
+                        'otp' => $request->otp
+                    ])
                 ]);
 
                 return Response::success(['message' => 'Tier 2 verification successful!']);
@@ -298,7 +331,8 @@ class KycController extends Controller
                 ]
             ];
 
-            $result = $this->youVerifyService->verifyAddress($payload);
+            $service = $this->getKycService();
+            $result = $service->verifyAddress($payload);
 
             if (isset($result['status']) && ($result['status'] === 'success' || $result['status'] === 'pending')) {
                 $reference = 'KYC_T3_' . $user->id . '_' . time();
@@ -306,14 +340,14 @@ class KycController extends Controller
                 KycVerification::create([
                     'user_id' => $user->id,
                     'reference' => $reference,
-                    'transaction_id' => $result['data']['id'] ?? null,
+                    'transaction_id' => $result['data']['id'] ?? $result['data']['_id'] ?? null,
                     'level' => 3,
                     'status' => 'pending',
-                    'data' => $result['data'] ?? null
+                    'data' => array_merge(['provider' => $service instanceof \App\Services\SafeHavenKycService ? 'safehaven' : 'youverify'], (array)($result['data'] ?? []))
                 ]);
 
                 return Response::success([
-                    'message' => 'Address verification submitted. It will be reviewed shortly.',
+                    'message' => $result['message'] ?? 'Address verification submitted. It will be reviewed shortly.',
                     'reference' => $reference
                 ]);
             }

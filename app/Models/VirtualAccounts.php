@@ -21,5 +21,11 @@ class VirtualAccounts extends Model
         'bank_code',
         'currency',
         'account_type',
+        'provider',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 }

@@ -221,4 +221,9 @@ class User extends Authenticatable
         return $this->hasMany(UserBiometricDevice::class);
     }
 
+    public function virtualAccounts()
+    {
+        return $this->hasMany(VirtualAccounts::class, 'user_id');
+    }
+
 }

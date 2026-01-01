@@ -14,9 +14,11 @@ class ApiConnectionHelper{
 
 
     public function __construct() {
-        $this->apiClientId = trim(config('services.safeHeaven.client_id'));
-        $this->apiClientAssertion = trim(config('services.safeHeaven.client_assertion'));
-        $this->apiAuthUrl = rtrim(config('services.safeHeaven.api_url'), '/');
+        $basicSettings = \App\Models\Admin\BasicSettings::first();
+        
+        $this->apiClientId = $basicSettings->safehaven_client_id ?? trim(config('services.safeHeaven.client_id'));
+        $this->apiClientAssertion = $basicSettings->safehaven_client_assertion ?? trim(config('services.safeHeaven.client_assertion'));
+        $this->apiAuthUrl = rtrim($basicSettings->safehaven_api_url ?? config('services.safeHeaven.api_url'), '/');
     }
 
 
@@ -160,6 +162,7 @@ public function post($url, array $data) {
     
     // Convert the data array to JSON
     $jsonData = json_encode($data);
+    Log::info("SafeHaven POST Request", ['url' => $this->apiAuthUrl . $url, 'payload' => $data]);
     
     curl_setopt_array($curl, array(
         CURLOPT_URL => $this->apiAuthUrl . $url,
@@ -189,6 +192,11 @@ public function post($url, array $data) {
     Log::info("SafeHaven POST Response", ['url' => $this->apiAuthUrl . $url, 'response' => $response]);
     
     curl_close($curl);
+
+    $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+    if($httpCode >= 400) {
+        Log::error("SafeHaven POST HTTP Error $httpCode", ['url' => $this->apiAuthUrl . $url, 'response' => $response]);
+    }
 
     return $response;
 }
