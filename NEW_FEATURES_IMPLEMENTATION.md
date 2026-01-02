@@ -203,25 +203,58 @@ This document summarizes the implementation of new features for the CryptoMart a
 
 ---
 
-### 5. 🔔 Notification System
-**Purpose:** Display system notifications and manage push notification tokens
+### 5. 🔔 Notification System (FCM)
+#### User API
+- **Endpoint:** `GET /api/user/notifications`
+    - Fetches list of notifications for the user.
+- **Endpoint:** `POST /api/user/fcm-token/update`
+    - Updates the user's FCM device token.
+    - **Payload:** `{"token": "device_token_string"}`
+    - **Example cURL:**
+        ```bash
+        curl -X POST {{base_url}}/api/user/fcm-token/update \
+        -H "Authorization: Bearer {{token}}" \
+        -H "Content-Type: application/json" \
+        -d '{"token": "sample_fcm_token"}'
+        ```
+
+### Quidax Instant Orders (Buy/Sell)
+Allows users to buy and sell crypto instantly using their local NGN wallet.
 
 #### User API
-**1. Get Notifications**
-- **Endpoint:** `GET /api/user/notifications`
-- **Authentication:** Required
-- **Controller:** `App\Http\Controllers\Api\V1\User\DashboardController@notifications`
+- **Endpoint:** `POST /api/user/instant/buy`
+    - Initiates a Buy Order (Get Quote).
+    - **Payload:**
+        ```json
+        {
+            "from_currency": "ngn",
+            "to_currency": "btc",
+            "amount": 5000,
+            "type": "buy"
+        }
+        ```
+    - **Response:** Returns `order` object with `id` and `total` amount.
 
-**2. Update FCM Token**
-- **Endpoint:** `POST /api/user/fcm-token/update`
-- **Authentication:** Required
-- **Controller:** `App\Http\Controllers\Api\V1\User\DashboardController@updateDeviceToken`
-- **Body:**
-```json
-{
-    "token": "DEVICE_FCM_TOKEN_HERE"
-}
-```
+- **Endpoint:** `POST /api/user/instant/sell`
+    - Initiates a Sell Order (Get Quote).
+    - **Payload:**
+        ```json
+        {
+            "from_currency": "btc",
+            "to_currency": "ngn",
+            "amount": 0.001,
+            "type": "sell"
+        }
+        ```
+
+- **Endpoint:** `POST /api/user/instant/confirm`
+    - Confirms the order. **Debits/Credits Local Wallet**.
+    - **Payload:**
+        ```json
+        {
+            "order_id": "quidax_order_id"
+        }
+        ```
 
 ---
 

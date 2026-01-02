@@ -420,6 +420,111 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Instant - Buy",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"from_currency\": \"ngn\",\n    \"to_currency\": \"btc\",\n    \"amount\": 5000,\n    \"type\": \"buy\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/user/instant/buy",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"user",
+								"instant",
+								"buy"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Instant - Sell",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"from_currency\": \"btc\",\n    \"to_currency\": \"ngn\",\n    \"amount\": 0.001,\n    \"type\": \"sell\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/user/instant/sell",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"user",
+								"instant",
+								"sell"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Instant - Confirm",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"order_id\": \"sample_order_id\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/user/instant/confirm",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"user",
+								"instant",
+								"confirm"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		}

@@ -130,4 +130,46 @@ class QuidaxService
     {
         return $this->curl->get("v1/p2p/adverts/{$advert_id}");
     }
+
+    // --- Instant Orders ---
+
+    public function createInstantOrder($quidax_id, $data)
+    {
+        return $this->curl->post("v1/users/{$quidax_id}/instant_orders", $data);
+    }
+
+    public function confirmInstantOrder($quidax_id, $order_id)
+    {
+        return $this->curl->post("v1/users/{$quidax_id}/instant_orders/{$order_id}/confirm");
+    }
+
+    public function requoteInstantOrder($quidax_id, $order_id)
+    {
+        return $this->curl->post("v1/users/{$quidax_id}/instant_orders/{$order_id}/requote");
+    }
+
+    public function getInstantOrder($quidax_id, $order_id)
+    {
+        return $this->curl->get("v1/users/{$quidax_id}/instant_orders/{$order_id}");
+    }
+
+    public function getInstantOrders($quidax_id)
+    {
+        return $this->curl->get("v1/users/{$quidax_id}/instant_orders");
+    }
+
+    /**
+     * Transfer funds from Main Account to Sub Account (Internal Transfer)
+     */
+    public function fundSubAccount($quidax_id, $amount, $currency = 'ngn')
+    {
+        // Internal transfer endpoint: POST /v1/users/transfer (Confirm if this endpoint exists for Main->Sub)
+        // Payload usually: { "recipient_id": "...", "amount": "...", "currency": "..." }
+        $data = [
+            'recipient_id' => $quidax_id,
+            'amount' => $amount,
+            'currency' => $currency
+        ];
+        return $this->curl->post("v1/users/transfer", $data);
+    }
 }

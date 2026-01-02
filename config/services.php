@@ -75,6 +75,8 @@ return [
         'client_id' => env('SAFE_HEAVEN_CLIENTID'),
         'client_assertion' => env('SAFE_HEAVEN_CLIENT_ASSERTION'),
         'api_url' => env('SAFE_HEAVEN_URL'),
+        'main_account' => env('SAFE_HEAVEN_MAIN_ACCOUNT'), // Target for debits
+        'bank_code' => env('SAFE_HEAVEN_BANK_CODE', '090281'), // SafeHaven MFB Code
     ],
 
 ];

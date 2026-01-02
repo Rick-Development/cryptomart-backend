@@ -69,6 +69,13 @@ Route::prefix("user")->name("api.user.")->group(function () {
             });
         });
 
+        // Quidax Instant Orders
+        Route::controller(App\Http\Controllers\Api\V1\User\InstantOrderController::class)->prefix('instant')->group(function () {
+             Route::post('buy', 'buy');
+             Route::post('sell', 'sell');
+             Route::post('confirm', 'confirm');
+        });
+
         // Dashboard, Notification,
         Route::controller(DashboardController::class)->group(function () {
             Route::get("dashboard", "dashboard");
@@ -323,7 +330,7 @@ Route::prefix("user")->name("api.user.")->group(function () {
         });
 
         // Gift Cards (Reloadly)
-        Route::controller(App\Http\Controllers\Api\V1\User\GiftCardController::class)->prefix('gift-cards')->group(function () {
+        Route::controller(App\Http\Controllers\Api\V1\User\GiftCardController::class)->prefix('gift-card')->group(function () {
             Route::get('/categories', 'categories');
             Route::get('/discovery', 'discovery');
             Route::get('/countries', 'countries');

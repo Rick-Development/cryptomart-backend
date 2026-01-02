@@ -250,4 +250,43 @@ class SafeHavenService
 
         return $count;
     }
+
+    /**
+     * Debit User Sub-Account to App Main Account
+     */
+    public function debitSubAccountToApp($debitAccountNumber, $amount)
+    {
+        $settings = \App\Models\Admin\BasicSettings::first();
+        $creditAccount = $settings->safehaven_debit_account ?? null;
+        
+        // Use Config or Default for Bank Code (SafeHaven MFB)
+        $creditBank = config('services.safeHeaven.bank_code', '090281');
+        
+        if(!$creditAccount) {
+             // Fallback to Env if DB is empty? User said "take from database".
+             // Maybe legacy env support?
+             $creditAccount = config('services.safeHeaven.main_account');
+        }
+
+        if(!$creditAccount) {
+            throw new Exception("SafeHaven Main Debit Account not configured in Basic Settings.");
+        }
+
+        // 1. Name Enquiry (Validate Destination)
+        $enquiry = $this->nameEnquiry($creditBank, $creditAccount);
+        $sessionId = $enquiry['sessionId'] ?? ($enquiry['sessionID'] ?? null);
+
+        // 2. Transfer
+        $payload = [
+            'nameEnquirySessionId' => $sessionId,
+            'paymentReference' => (string) Str::uuid(),
+            'amount' => $amount,
+            'debitAccountNumber' => $debitAccountNumber,
+            'creditAccountNumber' => $creditAccount,
+            'creditBankCode' => $creditBank,
+            'narration' => 'Instant Order Debit',
+        ];
+        
+        return $this->transfer($payload);
+    }
 }
