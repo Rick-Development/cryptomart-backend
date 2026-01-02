@@ -327,14 +327,14 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/api/user/gift-card/categories",
+							"raw": "{{base_url}}/api/user/gift-cards/categories",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
 								"api",
 								"user",
-								"gift-card",
+								"gift-cards",
 								"categories"
 							]
 						}
@@ -371,6 +371,51 @@
 								"api",
 								"user",
 								"notifications"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update FCM Token",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"token\": \"DEVICE_FCM_TOKEN_HERE\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/user/fcm-token/update",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"user",
+								"fcm-token",
+								"update"
 							]
 						}
 					},

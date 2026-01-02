@@ -218,4 +218,24 @@ class DashboardController extends Controller
             'notification'      => $notification,
         ],200);
     }
+
+    public function updateDeviceToken(\Illuminate\Http\Request $request) {
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'token' => 'required|string',
+        ]);
+
+        if($validator->fails()) {
+            return Response::error($validator->errors()->all());
+        }
+
+        $user = auth()->user();
+        try {
+            $user->update([
+                'fcm_token' => $request->token,
+            ]);
+            return Response::success([__('Device token updated successfully.')]);
+        } catch (\Exception $e) {
+            return Response::error([__('Something went wrong! Please try again.')]);
+        }
+    }
 }

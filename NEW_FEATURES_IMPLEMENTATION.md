@@ -178,7 +178,7 @@ This document summarizes the implementation of new features for the CryptoMart a
 - **API:** `https://giftcards.reloadly.com/product-categories`
 
 #### User API
-- **Endpoint:** `GET /api/user/gift-card/categories`
+- **Endpoint:** `GET /api/user/gift-cards/categories`
 - **Authentication:** Required
 - **Controller:** `App\Http\Controllers\Api\V1\User\GiftCardController`
 - **Response Format:**
@@ -204,12 +204,24 @@ This document summarizes the implementation of new features for the CryptoMart a
 ---
 
 ### 5. 🔔 Notification System
-**Purpose:** Display system notifications to users
+**Purpose:** Display system notifications and manage push notification tokens
 
 #### User API
+**1. Get Notifications**
 - **Endpoint:** `GET /api/user/notifications`
 - **Authentication:** Required
 - **Controller:** `App\Http\Controllers\Api\V1\User\DashboardController@notifications`
+
+**2. Update FCM Token**
+- **Endpoint:** `POST /api/user/fcm-token/update`
+- **Authentication:** Required
+- **Controller:** `App\Http\Controllers\Api\V1\User\DashboardController@updateDeviceToken`
+- **Body:**
+```json
+{
+    "token": "DEVICE_FCM_TOKEN_HERE"
+}
+```
 
 ---
 
@@ -298,6 +310,17 @@ curl --location 'http://127.0.0.1:8000/api/user/gift-card/categories' \
 curl --location 'http://127.0.0.1:8000/api/user/notifications' \
 --header 'Authorization: Bearer YOUR_TOKEN' \
 --header 'Accept: application/json'
+```
+
+**6. Update FCM Token:**
+```bash
+curl --location 'http://127.0.0.1:8000/api/user/fcm-token/update' \
+--header 'Authorization: Bearer YOUR_TOKEN' \
+--header 'Accept: application/json' \
+--header 'Content-Type: application/json' \
+--data '{
+    "token": "DEVICE_FCM_TOKEN_HERE"
+}'
 ```
 
 ---

@@ -73,6 +73,7 @@ Route::prefix("user")->name("api.user.")->group(function () {
         Route::controller(DashboardController::class)->group(function () {
             Route::get("dashboard", "dashboard");
             Route::get("notifications", "notifications");
+            Route::post("fcm-token/update", "updateDeviceToken");
         });
 
         // security
@@ -246,11 +247,6 @@ Route::prefix("user")->name("api.user.")->group(function () {
              Route::post('message/send', 'messageSend');
         });
 
-        // Gift Cards
-        Route::controller(App\Http\Controllers\Api\V1\User\GiftCardController::class)->prefix('gift-card')->group(function () {
-             Route::get('categories', 'categories');
-        });
-        
         // P2P
         Route::controller(App\Http\Controllers\Api\OrderController::class)->prefix('p2p')->group(function () {
             Route::get('/orders', 'index');
@@ -328,6 +324,7 @@ Route::prefix("user")->name("api.user.")->group(function () {
 
         // Gift Cards (Reloadly)
         Route::controller(App\Http\Controllers\Api\V1\User\GiftCardController::class)->prefix('gift-cards')->group(function () {
+            Route::get('/categories', 'categories');
             Route::get('/discovery', 'discovery');
             Route::get('/countries', 'countries');
             Route::get('/countries/{isoCode}', 'countryDetails');
