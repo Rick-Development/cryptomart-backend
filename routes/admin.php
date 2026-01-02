@@ -496,6 +496,15 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/sync-metadata', 'syncMetadata')->name('sync.metadata');
         Route::post('/toggle-status', 'toggleStatus')->name('status.toggle');
     });
+
+    // Banner Section
+    Route::controller(\App\Http\Controllers\Admin\BannerController::class)->prefix('banner')->name('banner.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('store', 'store')->name('store');
+        Route::post('update', 'update')->name('update');
+        Route::delete('delete', 'delete')->name('delete');
+        Route::put('status/update', 'statusUpdate')->name('status.update');
+    });
 });
 
 Route::get('admin/pusher/beams-auth', function (Request $request) {

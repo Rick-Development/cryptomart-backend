@@ -187,6 +187,16 @@
                             'route'     => "admin.gift.card.index",
                             'icon'      => "menu-icon las la-gift",
                         ],
+                        [
+                            'title'     => "Ad Banners",
+                            'route'     => "admin.banner.index",
+                            'icon'      => "menu-icon las la-image",
+                        ],
+                        [
+                            'title'     => "Support Tickets",
+                            'route'     => "admin.support.ticket.index",
+                            'icon'      => "menu-icon las la-ticket-alt",
+                        ],
                         'dropdown'      => [
                             [
                                 'title'     => "P2P Marketplace",

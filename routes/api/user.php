@@ -226,8 +226,29 @@ Route::prefix("user")->name("api.user.")->group(function () {
             });
         });
         
-        Route::controller(BannerController::class)->prefix('banner')->group(function () {
-            Route::post('/upload-image', 'store');
+        // Banners
+        Route::controller(App\Http\Controllers\Api\V1\User\BannerController::class)->prefix('banner')->group(function () {
+            Route::get('/', 'index');
+        });
+
+        // Announcements
+        Route::controller(App\Http\Controllers\Api\V1\User\AnnouncementController::class)->prefix('announcement')->group(function () {
+             Route::get('/', 'index');
+             Route::get('categories', 'categories');
+             Route::get('{slug}', 'show');
+        });
+
+        // Support Tickets
+        Route::controller(App\Http\Controllers\Api\V1\User\SupportTicketController::class)->prefix('support-ticket')->group(function () {
+             Route::get('/', 'index');
+             Route::post('/', 'store');
+             Route::get('conversation/{token}', 'conversation');
+             Route::post('message/send', 'messageSend');
+        });
+
+        // Gift Cards
+        Route::controller(App\Http\Controllers\Api\V1\User\GiftCardController::class)->prefix('gift-card')->group(function () {
+             Route::get('categories', 'categories');
         });
         
         // P2P

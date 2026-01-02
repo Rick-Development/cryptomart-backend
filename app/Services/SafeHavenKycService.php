@@ -27,14 +27,6 @@ class SafeHavenKycService
             'debitAccountNumber' => $basicSettings->safehaven_debit_account ?? null,
         ];
 
-        if ($selfieImage) {
-            // Extract raw base64 if data-uri is provided
-            if (preg_match('/^data:image\/(\w+);base64,/', $selfieImage)) {
-                $payload['selfie'] = substr($selfieImage, strpos($selfieImage, ',') + 1);
-            } else {
-                $payload['selfie'] = $selfieImage;
-            }
-        }
 
         try {
             $response = $this->identityHelper->initiateVerification($payload);
