@@ -330,7 +330,7 @@ Route::prefix("user")->name("api.user.")->group(function () {
         });
 
         // Gift Cards (Reloadly)
-        Route::controller(App\Http\Controllers\Api\V1\User\GiftCardController::class)->prefix('gift-card')->group(function () {
+        $giftCardRoutes = function () {
             Route::get('/categories', 'categories');
             Route::get('/discovery', 'discovery');
             Route::get('/countries', 'countries');
@@ -340,7 +340,10 @@ Route::prefix("user")->name("api.user.")->group(function () {
             Route::get('/fx-rate', 'fxRate');
             Route::post('/order', 'storeOrder');
             Route::get('/sync-metadata', 'syncMetadata'); // Internal sync
-        });
+        };
+
+        Route::controller(App\Http\Controllers\Api\V1\User\GiftCardController::class)->prefix('gift-card')->group($giftCardRoutes);
+        Route::controller(App\Http\Controllers\Api\V1\User\GiftCardController::class)->prefix('gift-cards')->group($giftCardRoutes);
     });
 
 
