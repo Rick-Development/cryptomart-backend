@@ -128,19 +128,93 @@ class GiftCardController extends Controller
 
     public function storeOrder(Request $request)
     {
-        // Basic validation, needs to be adjusted based on actual Reloadly payload requirements
         $validator = Validator::make($request->all(), [
             'product_id' => 'required|integer',
-            'amount' => 'required|numeric',
+            'wallet_id' => 'required|integer|exists:user_wallets,id',
+            'quantity' => 'required|integer|min:1',
+            'unit_price' => 'required|numeric|min:0',
+            'sender_name' => 'nullable|string|max:255',
             'recipient_email' => 'required|email',
-            'identifier' => 'required|string', // unique client identifier
         ]);
 
-        if($validator->fails()) return Response::errorResponse($validator->errors()->all());
+        if($validator->fails()) {
+            return Response::errorResponse('Validation failed', $validator->errors());
+        }
 
+        $user = auth('api')->user();
+        
         try {
-            $order = $this->reloadly->placeOrder($request->all());
-            return Response::successResponse('Order placed successfully', ['order' => $order]);
+            // Verify wallet belongs to user
+            $wallet = \App\Models\UserWallet::where('id', $request->wallet_id)
+                ->where('user_id', $user->id)
+                ->first();
+
+            if (!$wallet) {
+                return Response::errorResponse('Wallet not found or does not belong to you');
+            }
+
+            // Calculate total amount
+            $totalAmount = $request->quantity * $request->unit_price;
+
+            // Check wallet balance
+            if ($wallet->balance < $totalAmount) {
+                return Response::errorResponse('Insufficient wallet balance');
+            }
+
+            // Fetch product details from Reloadly
+            $product = $this->reloadly->getProductById($request->product_id);
+
+            // Generate unique identifier for this transaction
+            $customIdentifier = 'GC-' . $user->id . '-' . time() . '-' . uniqid();
+
+            // Prepare Reloadly order payload
+            $orderPayload = [
+                'productId' => $request->product_id,
+                'countryCode' => $product['country']['isoName'] ?? 'US',
+                'quantity' => $request->quantity,
+                'unitPrice' => $request->unit_price,
+                'customIdentifier' => $customIdentifier,
+                'senderName' => $request->sender_name ?? $user->fullname ?? $user->username,
+                'recipientEmail' => $request->recipient_email,
+            ];
+
+            // Place order with Reloadly
+            $reloadlyOrder = $this->reloadly->placeOrder($orderPayload);
+
+            // Deduct from wallet
+            $wallet->balance -= $totalAmount;
+            $wallet->save();
+
+            // Create transaction record
+            $transaction = \App\Models\GiftCardTransaction::create([
+                'user_id' => $user->id,
+                'wallet_id' => $wallet->id,
+                'reloadly_transaction_id' => $reloadlyOrder['transactionId'] ?? null,
+                'custom_identifier' => $customIdentifier,
+                'status' => $reloadlyOrder['status'] ?? 'PENDING',
+                'amount' => $totalAmount,
+                'currency' => $wallet->currency_code ?? 'USD',
+                'fee' => $reloadlyOrder['fee'] ?? 0,
+                'discount' => $reloadlyOrder['discount'] ?? 0,
+                'product_id' => $request->product_id,
+                'product_name' => $product['productName'] ?? 'Unknown Product',
+                'quantity' => $request->quantity,
+                'unit_price' => $request->unit_price,
+                'product_currency' => $product['recipientCurrencyCode'] ?? 'USD',
+                'recipient_email' => $request->recipient_email,
+                'meta' => [
+                    'sender_name' => $request->sender_name,
+                    'reloadly_response' => $reloadlyOrder,
+                    'product_details' => $product,
+                ],
+            ]);
+
+            return Response::successResponse('Gift card order placed successfully', [
+                'transaction' => $transaction,
+                'wallet_balance' => $wallet->balance,
+                'reloadly_order' => $reloadlyOrder,
+            ]);
+
         } catch (\Exception $e) {
             return Response::errorResponse('Failed to place order: ' . $e->getMessage());
         }
