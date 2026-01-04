@@ -38,6 +38,30 @@ Route::prefix("user")->name("api.user.")->group(function () {
             Route::get('/{code}/history', 'history');
         });
 
+        // Quidax Crypto Trading
+        Route::controller(QuidaxController::class)->prefix('quidax')->group(function () {
+            Route::get('get-user', 'getUser');
+            Route::get('fetch-user-wallets', 'fetchUserWallets');
+            Route::get('fetch-user-wallet', 'fetchUserWallet');
+            Route::get('fetch-payment-address', 'fetchPaymentAddress');
+            Route::get('fetch-payment-addresses', 'fetchPaymentAddressses');
+            Route::post('create-crypto-payment-address', 'createCryptoPaymentAddress');
+            Route::post('create-swap-quotation', 'createSwapQuotation');
+            Route::post('swap', 'swap');
+            Route::get('fetch-withdraws', 'fetch_withdraws');
+            Route::post('cancel-withdrawal', 'cancel_withdrawal');
+            Route::post('create-withdrawal', 'create_withdrawal');
+            Route::post('initiate-ramp-transaction', 'initiate_ramp_transaction');
+            Route::post('refresh-instant-swap-quotation', 'refresh_instant_swap_quotation');
+            Route::get('fetch-swap-transaction', 'fetch_swap_transaction');
+            Route::get('get-swap-transaction', 'get_swap_transaction');
+            Route::post('temporary-swap-quotation', 'temporary_swap_quotation');
+            Route::get('fetch-deposits', 'fetch_deposits');
+            Route::get('fetch-a-deposit', 'fetch_a_deposit');
+            Route::get('get-all-public-adverts', 'get_all_public_adverts');
+            Route::get('get-single-public-advert', 'get_single_public_advert');
+        });
+
         // ... (wallets, profile, quidax, instant order, dashboard routes remain here or referenced implicitly if not customized)
 
         // security group
