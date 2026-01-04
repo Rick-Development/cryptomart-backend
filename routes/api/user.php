@@ -62,6 +62,19 @@ Route::prefix("user")->name("api.user.")->group(function () {
             Route::get('get-single-public-advert', 'get_single_public_advert');
         });
 
+        // Profile Management
+        Route::controller(ProfileController::class)->prefix('profile')->group(function () {
+            Route::get('info', 'profileInfo');
+            Route::post('info/update', 'profileInfoUpdate');
+            Route::post('password/update', 'profilePasswordUpdate');
+            Route::post('delete', 'deleteProfile');
+        });
+
+        // Dashboard
+        Route::controller(DashboardController::class)->prefix('dashboard')->group(function () {
+            Route::get('/', 'index');
+        });
+
         // ... (wallets, profile, quidax, instant order, dashboard routes remain here or referenced implicitly if not customized)
 
         // security group
