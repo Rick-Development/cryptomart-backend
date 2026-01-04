@@ -29,6 +29,7 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'login_pin',
     ];
 
     /**
@@ -45,6 +46,7 @@ class User extends Authenticatable
         'mobile'              => 'string',
         'full_mobile'         => 'string',
         'account_no'          => 'string',
+        'login_pin'           => 'string',
         'pin_status'          => 'integer',
         'pin_code'            => 'string',
         'password'            => 'string',

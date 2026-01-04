@@ -20,7 +20,7 @@ class PinSetupGuard
         $user       = auth()->user();
         if($user->pin_status == false){
             if(auth()->guard("api")->check()) {
-                return Response::error(['Please setup your pin first.']);
+                return Response::errorResponse('Please setup your pin first.',[]);
             }else{
                 return redirect()->route('user.setup.pin.index')->with(['error' => ['Please setup your pin first.']]);
             }

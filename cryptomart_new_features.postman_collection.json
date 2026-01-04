@@ -1,0 +1,354 @@
+{
+    "info": {
+        "_postman_id": "cryptomart-new-features",
+        "name": "Cryptomart New Features",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Fund Transfer: Check User (P2P)",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "application/json",
+                        "type": "text"
+                    },
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json",
+                        "type": "text"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"username_or_email\": \"username_or_email\"\n}"
+                },
+                "url": {
+                    "raw": "{{base_url}}/api/user/fund-transfer/check-user",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "user",
+                        "fund-transfer",
+                        "check-user"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Fund Transfer: Confirm (Amount, Currency, PIN)",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "application/json",
+                        "type": "text"
+                    },
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json",
+                        "type": "text"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"identifier\": \"temporary_data_identifier_here\",\n    \"amount\": \"100\",\n    \"currency_code\": \"USD\",\n    \"pin_code\": \"1234\"\n}"
+                },
+                "url": {
+                    "raw": "{{base_url}}/api/user/fund-transfer/confirm",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "user",
+                        "fund-transfer",
+                        "confirm"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Money Out: Confirm (with PIN)",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "application/json",
+                        "type": "text"
+                    },
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json",
+                        "type": "text"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"token\": \"temporary_data_identifier_here\",\n    \"pin_code\": \"1234\"\n}"
+                },
+                "url": {
+                    "raw": "{{base_url}}/api/user/money-out/confirm",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "user",
+                        "money-out",
+                        "confirm"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Login PIN: Update (6-digit)",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "application/json",
+                        "type": "text"
+                    },
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json",
+                        "type": "text"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"old_pin\": \"123456\",\n    \"new_pin\": \"654321\",\n    \"new_pin_confirmation\": \"654321\"\n}"
+                },
+                "url": {
+                    "raw": "{{base_url}}/api/user/login-pin/update",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "user",
+                        "login-pin",
+                        "update"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Login PIN: Check (6-digit)",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "application/json",
+                        "type": "text"
+                    },
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json",
+                        "type": "text"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"login_pin\": \"123456\"\n}"
+                },
+                "url": {
+                    "raw": "{{base_url}}/api/user/login-pin/check",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "user",
+                        "login-pin",
+                        "check"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Login PIN: Store (6-digit)",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "application/json",
+                        "type": "text"
+                    },
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json",
+                        "type": "text"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"login_pin\": \"123456\"\n}"
+                },
+                "url": {
+                    "raw": "{{base_url}}/api/user/login-pin/store",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "user",
+                        "login-pin",
+                        "store"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Transaction PIN: Store (4-digit)",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "application/json",
+                        "type": "text"
+                    },
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json",
+                        "type": "text"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"pin_code\": \"1234\"\n}"
+                },
+                "url": {
+                    "raw": "{{base_url}}/api/user/transaction-pin/store",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "user",
+                        "transaction-pin",
+                        "store"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Transaction PIN: Check (4-digit)",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "application/json",
+                        "type": "text"
+                    },
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json",
+                        "type": "text"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"pin_code\": \"1234\"\n}"
+                },
+                "url": {
+                    "raw": "{{base_url}}/api/user/transaction-pin/check",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "user",
+                        "transaction-pin",
+                        "check"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Transaction PIN: Update (4-digit)",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "application/json",
+                        "type": "text"
+                    },
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json",
+                        "type": "text"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"old_pin\": \"1234\",\n    \"new_pin\": \"4321\",\n    \"new_pin_confirmation\": \"4321\"\n}"
+                },
+                "url": {
+                    "raw": "{{base_url}}/api/user/transaction-pin/update",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "user",
+                        "transaction-pin",
+                        "update"
+                    ]
+                }
+            },
+            "response": []
+        }
+    ],
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            {
+                "key": "token",
+                "value": "{{access_token}}",
+                "type": "string"
+            }
+        ]
+    },
+    "event": [
+        {
+            "listen": "prerequest",
+            "script": {
+                "type": "text/javascript",
+                "exec": [
+                    ""
+                ]
+            }
+        },
+        {
+            "listen": "test",
+            "script": {
+                "type": "text/javascript",
+                "exec": [
+                    ""
+                ]
+            }
+        }
+    ]
+}

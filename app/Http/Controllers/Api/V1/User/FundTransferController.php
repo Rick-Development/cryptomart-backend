@@ -270,7 +270,23 @@ class FundTransferController extends Controller
      * @param App\Models\TemporaryData $temp_data
      * @return \Illuminate\Http\Response
      */
+
+
+    /**
+     *  Own Bank Transfer Submit
+     *
+     * @param App\Models\TemporaryData $temp_data
+     * @return \Illuminate\Http\Response
+     */
     public function ownBankTransferConfirm(TemporaryData $temp_data){
+        // PIN Check
+        $request = request();
+        if($request->has('pin_code')) {
+             if(Auth::user()->pin_code !== $request->pin_code) {
+                  return Response::error([__('Invalid Transaction PIN')], [], 400);
+             }
+        }
+
         $sender_wallet = UserWallet::active()->where('user_id', Auth::id())->first();
         if(!$sender_wallet) return Response::error([__("Your wallet not found")],[],400);
         
@@ -438,6 +454,13 @@ class FundTransferController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function otherBankTransferConfirm(TemporaryData $temp_data){
+        // PIN Check
+        $request = request();
+        if($request->has('pin_code')) {
+             if(Auth::user()->pin_code !== $request->pin_code) {
+                  return Response::error([__('Invalid Transaction PIN')], [], 400);
+             }
+        }
 
         $sender_wallet = UserWallet::active()->where('user_id', Auth::id())->first();
         if(!$sender_wallet) return Response::error([__("Your wallet not found")],[],400);

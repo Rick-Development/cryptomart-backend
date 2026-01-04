@@ -237,4 +237,46 @@ class SecurityController extends Controller
         }
     }
 
+    /**
+     * Method for check login pin.
+     * @param Illuminate\Http\Request $request
+     */
+    public function checkLoginPin(Request $request){
+        $validator      = Validator::make($request->all(),[
+            'login_pin' => 'required'
+        ]);
+        if($validator->fails()) return Response::error($validator->errors()->all(),[]);
+        $validated = $validator->validate();
+
+        $user   = auth()->user();
+        if($user->login_pin == $validated['login_pin']){
+            return Response::success([__('Login pin matched successfully.')],[],200);
+        }else{
+            return Response::error([__('Your entered login pin does not matched.')],[],400);
+        }
+    }
+
+    /**
+     * Method for update login pin.
+     * @param Illuminate\Http\Request $request
+     */
+    public function updateLoginPin(Request $request){
+        $validator      = Validator::make($request->all(),[
+            'login_pin' => 'required|digits:6'
+        ]);
+        if($validator->fails()) return Response::error($validator->errors()->all(),[]);
+        $validated = $validator->validate();
+
+        $user   = auth()->user();
+        try{
+            $user->update([
+                'login_pin' => $validated['login_pin'],
+            ]);
+        }catch(Exception $e){
+            return Response::error([__('Something went wrong! Please try again.')],[],500);
+        }
+
+        return Response::success([__('Login pin updated successfully.')],[],200);
+    }
+
 }

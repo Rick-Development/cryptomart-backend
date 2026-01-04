@@ -234,6 +234,12 @@ class MoneyOutController extends Controller
             'token'    => "required|exists:temporary_datas,identifier",
         ]);
 
+        if($request->has('pin_code')) {
+            if(auth()->user()->pin_code !== $request->pin_code) {
+                 return Response::error([__('Invalid Transaction PIN')], [], 400); 
+            }
+        }
+
         $temp_data = TemporaryData::where('identifier',$request->token)->first();
 
         $gateway_currency_id = $temp_data->data->gateway_currency_id ?? "";
