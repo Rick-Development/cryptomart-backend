@@ -32,6 +32,12 @@ use App\Http\Controllers\Api\V1\User\LoginPinController;
 
 Route::prefix("user")->name("api.user.")->group(function () {
     Route::middleware(['auth:api', 'verification.guard.api'])->group(function () {
+        // Wallets
+        Route::controller(WalletController::class)->prefix('wallets')->group(function () {
+            Route::get('/', 'index');
+            Route::get('/{code}/history', 'history');
+        });
+
         // ... (wallets, profile, quidax, instant order, dashboard routes remain here or referenced implicitly if not customized)
 
         // security group
