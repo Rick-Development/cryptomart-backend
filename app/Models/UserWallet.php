@@ -11,7 +11,7 @@ class UserWallet extends Model
 {
     use HasFactory;
     public $timestamps = true;
-    protected $fillable = ['balance', 'status','user_id','currency_id','currency_code', 'quote_currency_code','created_at','updated_at'];
+    protected $fillable = ['balance', 'reserved', 'status','user_id','currency_id','currency_code', 'quote_currency_code','created_at','updated_at'];
 
     protected $casts = [
         'id'                    => 'integer',

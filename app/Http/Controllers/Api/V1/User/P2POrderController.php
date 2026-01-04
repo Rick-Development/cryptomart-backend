@@ -58,7 +58,7 @@ class P2POrderController extends Controller
             if ($ad->type === 'buy') {
                 // Buyer selling crypto to ad owner
                 $wallet = UserWallet::where('user_id', auth()->id())
-                    ->where('currency', $ad->asset)
+                    ->where('currency_code', $ad->asset)
                     ->first();
 
                 if (!$wallet || $wallet->balance < $request->amount) {
@@ -89,6 +89,8 @@ class P2POrderController extends Controller
                 'payment_deadline' => Carbon::now()->addMinutes($ad->time_limit),
             ]);
 
+            $order->seller_payment_methods = $ad->paymentMethods();
+
             return Response::successResponse('Order created successfully', ['order' => $order], 201);
         });
     }
@@ -109,7 +111,12 @@ class P2POrderController extends Controller
         $order->status = 'paid';
         $order->save();
 
-        event(new \App\Events\P2POrderStatusUpdated($order));
+        try {
+            event(new \App\Events\P2POrderStatusUpdated($order));
+        } catch (\Exception $e) {
+            // Log error but continue (Pusher might be down or not configured)
+            \Log::error("Pusher Broadcast Error: " . $e->getMessage());
+        }
 
         return Response::successResponse('Payment marked as sent. Waiting for seller confirmation.', ['order' => $order]);
     }
@@ -122,9 +129,12 @@ class P2POrderController extends Controller
         return DB::transaction(function () use ($uid) {
             $order = P2POrder::where('id', $uid)->lockForUpdate()->firstOrFail();
 
-            // Only maker can release
-            if ($order->maker_id !== auth()->id()) {
-                return Response::errorResponse('Unauthorized', null, 403);
+            // Determine role: Only Seller can release crypto
+            $isSeller = ($order->type === 'sell' && $order->maker_id === auth()->id()) ||
+                        ($order->type === 'buy' && $order->taker_id === auth()->id());
+
+            if (!$isSeller) {
+                return Response::errorResponse('Unauthorized. Only seller can release.', null, 403);
             }
 
             if ($order->status !== 'paid' && $order->status !== 'funded') {
@@ -135,19 +145,19 @@ class P2POrderController extends Controller
             if ($order->type === 'sell') {
                 // Maker selling crypto, release from maker's reserved to taker
                 $fromWallet = UserWallet::where('user_id', $order->maker_id)
-                    ->where('currency', $order->asset)
+                    ->where('currency_code', $order->asset)
                     ->firstOrFail();
                 $toWallet = UserWallet::where('user_id', $order->taker_id)
-                    ->where('currency', $order->asset)
+                    ->where('currency_code', $order->asset)
                     ->firstOrFail();
                 $amount = (string)$order->amount;
             } else {
                 // Maker buying crypto, release from taker's reserved to maker
                 $fromWallet = UserWallet::where('user_id', $order->taker_id)
-                    ->where('currency', $order->asset)
+                    ->where('currency_code', $order->asset)
                     ->firstOrFail();
                 $toWallet = UserWallet::where('user_id', $order->maker_id)
-                    ->where('currency', $order->asset)
+                    ->where('currency_code', $order->asset)
                     ->firstOrFail();
                 $amount = (string)$order->amount;
             }
@@ -157,7 +167,11 @@ class P2POrderController extends Controller
             $order->status = 'completed';
             $order->save();
 
-            event(new \App\Events\P2POrderStatusUpdated($order));
+            try {
+                event(new \App\Events\P2POrderStatusUpdated($order));
+            } catch (\Exception $e) {
+                \Log::error("Pusher Broadcast Error: " . $e->getMessage());
+            }
 
             return Response::successResponse('Crypto released successfully', ['order' => $order]);
         });
@@ -193,7 +207,11 @@ class P2POrderController extends Controller
         $order->evidence = $request->evidence ?? [];
         $order->save();
 
-        event(new \App\Events\P2POrderStatusUpdated($order));
+        try {
+            event(new \App\Events\P2POrderStatusUpdated($order));
+        } catch (\Exception $e) {
+            \Log::error("Pusher Broadcast Error: " . $e->getMessage());
+        }
 
         return Response::successResponse('Dispute raised successfully. Admin will review.', ['order' => $order]);
     }
@@ -246,9 +264,36 @@ class P2POrderController extends Controller
             'attachment' => $request->attachment,
         ]);
 
-        event(new \App\Events\P2PMessageSent($message));
+        try {
+            event(new \App\Events\P2PMessageSent($message));
+        } catch (\Exception $e) {
+            \Log::error("Pusher Broadcast Error: " . $e->getMessage());
+        }
 
         return Response::successResponse('Message sent', ['message' => $message], 201);
+    }
+
+    /**
+     * Get single order details
+     */
+    public function show($uid)
+    {
+        $order = P2POrder::where('id', $uid)
+            ->with(['ad', 'maker:id,firstname,lastname,username', 'taker:id,firstname,lastname,username'])
+            ->firstOrFail();
+
+        // Check permission
+        if ($order->maker_id !== auth()->id() && $order->taker_id !== auth()->id()) {
+            return Response::errorResponse('Unauthorized', null, 403);
+        }
+
+        // Attach payment methods
+        // If I am observing as Taker (Buyer), I need Maker's (Seller's) payment methods.
+        // If I am observing as Maker (Seller), I see my own methods (or maybe I want to see which one Taker chose? P2P usually shows One).
+        // Since we didn't store specific method, we show all valid ones from Ad.
+        $order->seller_payment_methods = $order->ad->paymentMethods();
+
+        return Response::successResponse('Order details', ['order' => $order]);
     }
 
     /**

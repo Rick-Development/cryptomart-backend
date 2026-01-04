@@ -228,4 +228,29 @@ class User extends Authenticatable
         return $this->hasMany(VirtualAccounts::class, 'user_id');
     }
 
+    public function p2pUserStat()
+    {
+        return $this->hasOne(P2PUserStat::class, 'user_id');
+    }
+
+    public function p2pAds()
+    {
+        return $this->hasMany(P2PAd::class, 'user_id');
+    }
+
+    public function p2pOrders()
+    {
+        return $this->hasMany(P2POrder::class, 'maker_id');
+    }
+
+    public function p2pOrdersAsTaker()
+    {
+        return $this->hasMany(P2POrder::class, 'taker_id');
+    }
+
+    public function p2pPaymentMethods()
+    {
+        return $this->hasMany(P2PPaymentMethod::class, 'user_id');
+    }
+
 }

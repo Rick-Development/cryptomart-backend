@@ -72,17 +72,17 @@ class P2PDisputeController extends Controller
 
                 if ($order->type === 'sell') {
                     $fromWallet = UserWallet::where('user_id', $order->maker_id)
-                        ->where('currency', $order->asset)
+                        ->where('currency_code', $order->asset)
                         ->firstOrFail();
                     $toWallet = UserWallet::where('user_id', $order->taker_id)
-                        ->where('currency', $order->asset)
+                        ->where('currency_code', $order->asset)
                         ->firstOrFail();
                 } else {
                     $fromWallet = UserWallet::where('user_id', $order->taker_id)
-                        ->where('currency', $order->asset)
+                        ->where('currency_code', $order->asset)
                         ->firstOrFail();
                     $toWallet = UserWallet::where('user_id', $order->maker_id)
-                        ->where('currency', $order->asset)
+                        ->where('currency_code', $order->asset)
                         ->firstOrFail();
                 }
 
@@ -97,11 +97,11 @@ class P2PDisputeController extends Controller
 
                 if ($order->type === 'sell') {
                     $wallet = UserWallet::where('user_id', $order->maker_id)
-                        ->where('currency', $order->asset)
+                        ->where('currency_code', $order->asset)
                         ->firstOrFail();
                 } else {
                     $wallet = UserWallet::where('user_id', $order->taker_id)
-                        ->where('currency', $order->asset)
+                        ->where('currency_code', $order->asset)
                         ->firstOrFail();
                 }
 
@@ -133,7 +133,11 @@ class P2PDisputeController extends Controller
             $riskService->updateRiskScore(\App\Models\User::find($loserId));
 
             // Broadcast Event
-            event(new \App\Events\P2POrderStatusUpdated($order));
+            try {
+                event(new \App\Events\P2POrderStatusUpdated($order));
+            } catch (\Exception $e) {
+                \Log::error("Pusher Broadcast Error: " . $e->getMessage());
+            }
 
             return redirect()->route('admin.p2p.disputes.index')->with(['success' => ['Dispute resolved successfully']]);
         });

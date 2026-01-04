@@ -85,7 +85,7 @@ class P2PAdController extends Controller
         // For sell ads, lock crypto in escrow
         if ($request->type === 'sell') {
             $wallet = UserWallet::where('user_id', $user->id)
-                ->where('currency', $request->asset)
+                ->where('currency_code', $request->asset)
                 ->first();
 
             if (!$wallet || $wallet->balance < $request->total_amount) {

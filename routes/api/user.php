@@ -289,6 +289,7 @@ Route::prefix("user")->name("api.user.")->group(function () {
             
             // Orders
             Route::post('/orders', [App\Http\Controllers\Api\V1\User\P2POrderController::class, 'store']);
+            Route::get('/orders/{uid}', [App\Http\Controllers\Api\V1\User\P2POrderController::class, 'show']);
             Route::get('/my-orders', [App\Http\Controllers\Api\V1\User\P2POrderController::class, 'myOrders']);
             Route::post('/orders/{uid}/mark-paid', [App\Http\Controllers\Api\V1\User\P2POrderController::class, 'markPaid']);
             Route::post('/orders/{uid}/release', [App\Http\Controllers\Api\V1\User\P2POrderController::class, 'release']);
