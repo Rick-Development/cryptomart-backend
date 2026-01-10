@@ -79,9 +79,13 @@ class QuidaxController extends Controller
             return response()->json([
                 'status' => 'failed',
                 'message' => 'No address found',
-                'data' => $data
+                'data' => []
             ], 422);
         }
+        
+        // Get the first (and only) matching address
+        $data = reset($data);
+        
         return Response::success('Fetch successfully!', $data);
     }
     public function fetchPaymentAddressses(Request $request)
