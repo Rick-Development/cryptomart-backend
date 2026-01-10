@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use App\Notifications\User\Auth\SendAuthorizationCode;
 use App\Http\Controllers\Api\V1\User\Auth\AuthorizationController;
+use App\Services\QuidaxService;
 
 class LoginController extends Controller
 {
@@ -71,6 +72,30 @@ class LoginController extends Controller
         if (Hash::check($validated['password'], $user->password)) {
             if ($user->status != GlobalConst::ACTIVE)
                 return Response::error([__("Your account is temporary banded. Please contact with system admin")]);
+
+
+            if($user->quidax_id == null || $user->quidax_sn == null){
+              // Call Quidax API
+            $quidax = new  QuidaxService();
+            $quidax_response = $quidax->createSubAccount([
+                'email' => $user->email,
+                'first_name' => $user->firstname,
+                'last_name' => $user->lastname,
+            ]);
+
+            if (!isset($quidax_response['data'])) {
+                throw new \Exception("Invalid Quidax response");
+            }
+
+            $quidax_data = $quidax_response['data'];
+
+            $user->update([
+                'quidax_id' => $quidax_data['id'],
+                'quidax_sn' => $quidax_data['sn'],
+                'quidax_display_name' => $quidax_data['display_name'],
+                'quidax_reference' => $quidax_data['reference'],
+            ]);
+        }
 
             // User authenticated
             $token = $user->createToken("auth_token")->accessToken;

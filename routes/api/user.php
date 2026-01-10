@@ -44,6 +44,7 @@ Route::prefix("user")->name("api.user.")->group(function () {
             Route::get('fetch-user-wallets', 'fetchUserWallets');
             Route::get('fetch-user-wallet', 'fetchUserWallet');
             Route::get('fetch-payment-address', 'fetchPaymentAddress');
+            Route::get('fetch-address', 'fetchAddress');
             Route::get('fetch-payment-addresses', 'fetchPaymentAddressses');
             Route::post('create-crypto-payment-address', 'createCryptoPaymentAddress');
             Route::post('create-swap-quotation', 'createSwapQuotation');

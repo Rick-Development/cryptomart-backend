@@ -54,6 +54,36 @@ class QuidaxController extends Controller
         $response = $this->quidax->fetchPaymentAddress(auth()->user()->quidax_id, $request->currency);
         return Response::success('Fetch successfully!', $response['data']);
     }
+    public function fetchAddress(Request $request)
+    {
+        $validator = \Validator::make($request->all(), [
+            'currency' => 'required',
+            'network' => 'required | string'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'failed',
+                'message' => 'Validation failed',
+                'data' => $validator->errors()
+            ], 422);
+        }
+
+        $response = $this->quidax->fetchPaymentAddressses(auth()->user()->quidax_id, $request->currency);
+        $data = $response['data'];
+        $data = array_filter($data, function ($item) use ($request) {
+            return $item['network'] === $request->network;
+        });
+
+        if (empty($data)) {
+            return response()->json([
+                'status' => 'failed',
+                'message' => 'No address found',
+                'data' => $data
+            ], 422);
+        }
+        return Response::success('Fetch successfully!', $data);
+    }
     public function fetchPaymentAddressses(Request $request)
     {
         $response = $this->quidax->fetchPaymentAddressses(auth()->user()->quidax_id, $request->currency);
@@ -138,6 +168,7 @@ class QuidaxController extends Controller
     {
         $validator = \Validator::make($request->all(), [
             'currency' => 'required|string',
+            'network' => 'required|string',
             'amount' => 'required|string',
             'fund_uid' => 'required|string',
             'transaction_note' => 'required|string',
@@ -154,6 +185,7 @@ class QuidaxController extends Controller
 
         $data = $request->only([
             'currency',
+            'network',
             'amount',
             'fund_uid',
             'transaction_note',
@@ -175,6 +207,7 @@ class QuidaxController extends Controller
             ]);
         }
 
+        // \Log::info($data);
         $response = $this->quidax->create_withdrawal(auth()->user()->quidax_id, $data);
 
         if ($response && $response['status'] == "success") {
