@@ -1,0 +1,598 @@
+{
+    "info": {
+        "name": "cryptomart Graph API - USD Accounts",
+        "_postman_id": "cryptomart-graph-api-collection",
+        "description": "Complete Graph API integration for USD account creation, deposits, and withdrawals",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://localhost:8000",
+            "type": "string"
+        },
+        {
+            "key": "token",
+            "value": "YOUR_AUTH_TOKEN_HERE",
+            "type": "string"
+        }
+    ],
+    "item": [
+        {
+            "name": "1. Customer & Wallet Setup",
+            "item": [
+                {
+                    "name": "Create Graph Customer",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"dob\": \"1990-01-15\",\n  \"address\": \"123 Main Street\",\n  \"city\": \"Lagos\",\n  \"state\": \"Lagos\",\n  \"zip_code\": \"100001\",\n  \"id_number\": \"12345678901\",\n  \"id_type\": \"NIN\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/user/graph/create-customer",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "graph",
+                                "create-customer"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Create USD Wallet",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"currency\": \"USD\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/user/graph/create-wallet",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "graph",
+                                "create-wallet"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get User Wallets",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/user/graph/wallet",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "graph",
+                                "wallet"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "2. Deposits",
+            "item": [
+                {
+                    "name": "Create Deposit Address",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"wallet_id\": \"acc_xyz789\",\n  \"currency\": \"USDT\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/user/graph/deposit/address",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "graph",
+                                "deposit",
+                                "address"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Deposit History",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/user/graph/deposits?wallet_id=acc_xyz789",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "graph",
+                                "deposits"
+                            ],
+                            "query": [
+                                {
+                                    "key": "wallet_id",
+                                    "value": "acc_xyz789"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Mock Deposit (Sandbox)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"wallet_id\": \"acc_xyz789\",\n  \"amount\": 500,\n  \"currency\": \"USD\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/user/graph/deposit/mock",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "graph",
+                                "deposit",
+                                "mock"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "3. Withdrawals",
+            "item": [
+                {
+                    "name": "Get Exchange Rate",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/user/graph/exchange-rate?from=USD&to=NGN",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "graph",
+                                "exchange-rate"
+                            ],
+                            "query": [
+                                {
+                                    "key": "from",
+                                    "value": "USD"
+                                },
+                                {
+                                    "key": "to",
+                                    "value": "NGN"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "List Banks",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/user/graph/banks",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "graph",
+                                "banks"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Verify Bank Account",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"bank_code\": \"058\",\n  \"account_number\": \"0123456789\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/user/graph/verify-account",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "graph",
+                                "verify-account"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Create Payout Destination (USD - Crypto)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"type\": \"crypto_address\",\n  \"currency\": \"USD\",\n  \"details\": {\n    \"address\": \"0x1234567890abcdef...\",\n    \"network\": \"TRC20\",\n    \"currency\": \"USDT\"\n  }\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/user/graph/payout-destination",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "graph",
+                                "payout-destination"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Create Payout Destination (NGN - Bank)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"type\": \"bank_account\",\n  \"currency\": \"NGN\",\n  \"details\": {\n    \"bank_code\": \"058\",\n    \"account_number\": \"0123456789\",\n    \"account_name\": \"JOHN DOE\"\n  }\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/user/graph/payout-destination",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "graph",
+                                "payout-destination"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Create Payout Destination (Crypto)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"type\": \"crypto_address\",\n  \"currency\": \"USDT\",\n  \"details\": {\n    \"address\": \"0x1234567890abcdef...\",\n    \"network\": \"TRC20\"\n  }\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/user/graph/payout-destination",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "graph",
+                                "payout-destination"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Withdraw USD (Direct)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"wallet_id\": \"acc_xyz789\",\n  \"destination_id\": \"dest_usd_123\",\n  \"amount\": 500,\n  \"narration\": \"Withdrawal to USDT wallet\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/user/graph/withdraw/usd",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "graph",
+                                "withdraw",
+                                "usd"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Withdraw NGN (Convert USD -> NGN)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"wallet_id\": \"acc_xyz789\",\n  \"destination_id\": \"dest_ngn_123\",\n  \"usd_amount\": 100,\n  \"narration\": \"Withdrawal to NGN Bank Account\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/user/graph/withdraw/ngn",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "graph",
+                                "withdraw",
+                                "ngn"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Withdrawal History",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/user/graph/withdrawals?wallet_id=acc_xyz789",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "graph",
+                                "withdrawals"
+                            ],
+                            "query": [
+                                {
+                                    "key": "wallet_id",
+                                    "value": "acc_xyz789"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "4. Transactions & Utilities",
+            "item": [
+                {
+                    "name": "Get Transactions",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/user/graph/transactions?wallet_id=acc_xyz789",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "graph",
+                                "transactions"
+                            ],
+                            "query": [
+                                {
+                                    "key": "wallet_id",
+                                    "value": "acc_xyz789"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Refresh Balance",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"wallet_id\": \"acc_xyz789\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/user/graph/refresh-balance",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "graph",
+                                "refresh-balance"
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}

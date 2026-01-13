@@ -1,0 +1,195 @@
+{
+    "info": {
+        "_postman_id": "busha-api-collection",
+        "name": "Busha API (Connect Flow)",
+        "description": "Busha Buy/Sell Integration API Endpoints (Quote -> Transfer)",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Create Quote",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{access_token}}",
+                        "type": "text"
+                    },
+                    {
+                        "key": "Accept",
+                        "value": "application/json",
+                        "type": "text"
+                    }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/api/user/busha/quote?pair=BTC-NGN&amount=0.001&side=buy",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "user",
+                        "busha",
+                        "quote"
+                    ],
+                    "query": [
+                        {
+                            "key": "pair",
+                            "value": "BTC-NGN",
+                            "description": "Trading pair"
+                        },
+                        {
+                            "key": "amount",
+                            "value": "0.001",
+                            "description": "Crypto Amount (buy) or Source Amount (sell)"
+                        },
+                        {
+                            "key": "side",
+                            "value": "buy",
+                            "description": "buy or sell"
+                        }
+                    ]
+                },
+                "description": "Create a conversion quote. Returns quote_id."
+            },
+            "response": []
+        },
+        {
+            "name": "Execute Trade (Buy)",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{access_token}}",
+                        "type": "text"
+                    },
+                    {
+                        "key": "Accept",
+                        "value": "application/json",
+                        "type": "text"
+                    },
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json",
+                        "type": "text"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"pair\": \"BTC-NGN\",\n    \"side\": \"buy\",\n    \"quote_id\": \"QUOTE_ID_FROM_STEP_1\",\n    \"amount\": 0.001,\n    \"total\": 50000\n}",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    }
+                },
+                "url": {
+                    "raw": "{{base_url}}/api/user/busha/trade",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "user",
+                        "busha",
+                        "trade"
+                    ]
+                },
+                "description": "Execute the quote to buy crypto. Requires valid quote_id."
+            },
+            "response": []
+        },
+        {
+            "name": "Execute Trade (Sell)",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{access_token}}",
+                        "type": "text"
+                    },
+                    {
+                        "key": "Accept",
+                        "value": "application/json",
+                        "type": "text"
+                    },
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json",
+                        "type": "text"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"pair\": \"BTC-NGN\",\n    \"side\": \"sell\",\n    \"quote_id\": \"QUOTE_ID_FROM_STEP_1\",\n    \"amount\": 0.001,\n    \"total\": 48000\n}",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    }
+                },
+                "url": {
+                    "raw": "{{base_url}}/api/user/busha/trade",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "user",
+                        "busha",
+                        "trade"
+                    ]
+                },
+                "description": "Execute the quote to sell crypto. Requires valid quote_id."
+            },
+            "response": []
+        },
+        {
+            "name": "Transaction History",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{access_token}}",
+                        "type": "text"
+                    },
+                    {
+                        "key": "Accept",
+                        "value": "application/json",
+                        "type": "text"
+                    }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/api/user/busha/history",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "user",
+                        "busha",
+                        "history"
+                    ]
+                },
+                "description": "Get user's Busha transaction history"
+            },
+            "response": []
+        }
+    ],
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "https://cryptomart.billway.ng",
+            "type": "string"
+        },
+        {
+            "key": "access_token",
+            "value": "YOUR_ACCESS_TOKEN_HERE",
+            "type": "string"
+        }
+    ]
+}
