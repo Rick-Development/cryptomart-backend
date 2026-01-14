@@ -505,6 +505,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::delete('delete', 'delete')->name('delete');
         Route::put('status/update', 'statusUpdate')->name('status.update');
     });
+    
 
     // Graph API Section
     Route::controller(\App\Http\Controllers\Admin\GraphController::class)->prefix('graph')->name('graph.')->group(function () {

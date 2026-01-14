@@ -89,3 +89,6 @@ Route::post('webhook/graph', [\App\Http\Controllers\Api\GraphWebhookController::
 
 // Busha Webhook
 Route::post('webhook/busha', [\App\Http\Controllers\Api\BushaWebhookController::class, 'handle'])->name('webhook.busha');
+
+// Route::post('webhook/safehaven', [\App\Http\Controllers\Api\User\WebhookController::class, 'handleSafeHaven'])->name('webhook.safehaven');
+
