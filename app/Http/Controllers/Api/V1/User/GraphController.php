@@ -32,19 +32,19 @@ class GraphController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return Response::error($validator->errors()->all());
+            return Response::errorResponse($validator->errors()->all());
         }
 
         try {
             $user = auth()->user();
             if (GraphCustomer::where('user_id', $user->id)->exists()) {
-                return Response::error(['Customer already exists']);
+                return Response::errorResponse('Customer already exists');
             }
 
             $customer = $this->graphService->createPerson($user, $validator->validated());
-            return Response::success(['Customer created successfully'], ['customer' => $customer]);
+            return Response::successResponse('Customer created successfully', ['customer' => $customer]);
         } catch (\Exception $e) {
-            return Response::error([$e->getMessage()]);
+            return Response::errorResponse($e->getMessage());
         }
     }
 
@@ -67,18 +67,18 @@ class GraphController extends Controller
                 ->first();
                 
             if ($existing) {
-                return Response::success(['Wallet already exists'], ['wallet' => $existing]);
+                return Response::successResponse('Wallet already exists', ['wallet' => $existing]);
             }
 
             $wallet = $this->graphService->createWallet($user, $request->currency);
-            return Response::success(['Wallet created successfully'], ['wallet' => $wallet]);
+            return Response::successResponse('Wallet created successfully', ['wallet' => $wallet]);
 
         } catch (\Exception $e) {
             // Check if user needs to be created first
             if (str_contains($e->getMessage(), 'not a registered Graph customer')) {
-                 return Response::error(['Please create a Graph profile/customer first.']);
+                 return Response::errorResponse('Please create a Graph profile/customer first.');
             }
-            return Response::error([$e->getMessage()]);
+            return Response::errorResponse($e->getMessage());
         }
     }
 
@@ -87,9 +87,9 @@ class GraphController extends Controller
         try {
             $user = auth()->user();
             $wallets = GraphWallet::where('user_id', $user->id)->get();
-            return Response::success(['Wallets fetched successfully'], ['wallets' => $wallets]);
+            return Response::successResponse('Wallets fetched successfully', ['wallets' => $wallets]);
         } catch (\Exception $e) {
-            return Response::error([$e->getMessage()]);
+            return Response::errorResponse($e->getMessage());
         }
     }
 
@@ -110,13 +110,13 @@ class GraphController extends Controller
                 ->first();
 
             if (!$wallet) {
-                 return Response::error(['Wallet not found']);
+                 return Response::errorResponse('Wallet not found');
             }
 
             $transactions = $this->graphService->getTransactions($request->wallet_id);
-            return Response::success(['Transactions fetched successfully'], ['transactions' => $transactions]);
+            return Response::successResponse('Transactions fetched successfully', ['transactions' => $transactions]);
         } catch (\Exception $e) {
-            return Response::error([$e->getMessage()]);
+            return Response::errorResponse($e->getMessage());
         }
     }
 
@@ -140,13 +140,13 @@ class GraphController extends Controller
                 ->first();
 
             if (!$wallet) {
-                return Response::error(['Wallet not found']);
+                return Response::errorResponse('Wallet not found');
             }
 
             $address = $this->graphService->createDepositAddress($user, $request->wallet_id, $request->currency);
-            return Response::success(['Deposit address created successfully'], ['address' => $address]);
+            return Response::successResponse('Deposit address created successfully', ['address' => $address]);
         } catch (\Exception $e) {
-            return Response::error([$e->getMessage()]);
+            return Response::errorResponse($e->getMessage());
         }
     }
 
@@ -166,13 +166,13 @@ class GraphController extends Controller
                 ->first();
 
             if (!$wallet) {
-                return Response::error(['Wallet not found']);
+                return Response::errorResponse('Wallet not found');
             }
 
             $deposits = $this->graphService->getDeposits($request->wallet_id);
-            return Response::success(['Deposits fetched successfully'], ['deposits' => $deposits]);
+            return Response::successResponse('Deposits fetched successfully', ['deposits' => $deposits]);
         } catch (\Exception $e) {
-            return Response::error([$e->getMessage()]);
+            return Response::errorResponse($e->getMessage());
         }
     }
 
@@ -194,7 +194,7 @@ class GraphController extends Controller
                 ->first();
 
             if (!$wallet) {
-                return Response::error(['Wallet not found']);
+                return Response::errorResponse('Wallet not found');
             }
 
             $deposit = $this->graphService->mockDeposit($request->wallet_id, $request->amount, $request->currency);
@@ -202,9 +202,9 @@ class GraphController extends Controller
             // Update local wallet balance
             $this->graphService->updateWalletBalance($request->wallet_id);
             
-            return Response::success(['Deposit simulated successfully'], ['deposit' => $deposit]);
+            return Response::successResponse('Deposit simulated successfully', ['deposit' => $deposit]);
         } catch (\Exception $e) {
-            return Response::error([$e->getMessage()]);
+            return Response::errorResponse($e->getMessage());
         }
     }
 
@@ -214,9 +214,9 @@ class GraphController extends Controller
     {
         try {
             $banks = $this->graphService->listBanks('NG');
-            return Response::success(['Banks fetched successfully'], ['banks' => $banks]);
+            return Response::successResponse('Banks fetched successfully', ['banks' => $banks]);
         } catch (\Exception $e) {
-            return Response::error([$e->getMessage()]);
+            return Response::errorResponse($e->getMessage());
         }
     }
 
@@ -233,9 +233,9 @@ class GraphController extends Controller
 
         try {
             $accountDetails = $this->graphService->resolveBankAccount($request->bank_code, $request->account_number);
-            return Response::success(['Account verified successfully'], ['account' => $accountDetails]);
+            return Response::successResponse('Account verified successfully', ['account' => $accountDetails]);
         } catch (\Exception $e) {
-            return Response::error([$e->getMessage()]);
+            return Response::errorResponse($e->getMessage());
         }
     }
 
@@ -254,9 +254,9 @@ class GraphController extends Controller
         try {
             $user = auth()->user();
             $destination = $this->graphService->createPayoutDestination($user, $validator->validated());
-            return Response::success(['Payout destination created successfully'], ['destination' => $destination]);
+            return Response::successResponse('Payout destination created successfully', ['destination' => $destination]);
         } catch (\Exception $e) {
-            return Response::error([$e->getMessage()]);
+            return Response::errorResponse($e->getMessage());
         }
     }
 
@@ -281,11 +281,11 @@ class GraphController extends Controller
                 ->first();
 
             if (!$wallet) {
-                return Response::error(['USD wallet not found']);
+                return Response::errorResponse('USD wallet not found');
             }
 
             if ($wallet->balance < $request->amount) {
-                return Response::error(['Insufficient USD balance']);
+                return Response::errorResponse('Insufficient USD balance');
             }
 
             $data = [
@@ -299,9 +299,9 @@ class GraphController extends Controller
             $payout = $this->graphService->createPayout($user, $request->wallet_id, $data);
             $this->graphService->updateWalletBalance($request->wallet_id);
             
-            return Response::success(['USD withdrawal initiated successfully'], ['payout' => $payout]);
+            return Response::successResponse('USD withdrawal initiated successfully', ['payout' => $payout]);
         } catch (\Exception $e) {
-            return Response::error([$e->getMessage()]);
+            return Response::errorResponse($e->getMessage());
         }
     }
 
@@ -326,11 +326,11 @@ class GraphController extends Controller
                 ->first();
 
             if (!$wallet) {
-                return Response::error(['USD wallet not found']);
+                return Response::errorResponse('USD wallet not found');
             }
 
             if ($wallet->balance < $request->usd_amount) {
-                return Response::error(['Insufficient USD balance']);
+                return Response::errorResponse('Insufficient USD balance');
             }
 
             // Step 1: Convert USD to NGN
@@ -354,12 +354,12 @@ class GraphController extends Controller
             $payout = $this->graphService->createPayout($user, $request->wallet_id, $payoutData);
             $this->graphService->updateWalletBalance($request->wallet_id);
             
-            return Response::success(['Conversion and withdrawal successful'], [
+            return Response::successResponse('Conversion and withdrawal successful', [
                 'conversion' => $conversion,
                 'payout' => $payout
             ]);
         } catch (\Exception $e) {
-            return Response::error([$e->getMessage()]);
+            return Response::errorResponse($e->getMessage());
         }
     }
 
@@ -379,13 +379,13 @@ class GraphController extends Controller
                 ->first();
 
             if (!$wallet) {
-                return Response::error(['Wallet not found']);
+                return Response::errorResponse('Wallet not found');
             }
 
             $withdrawals = $this->graphService->getPayouts($request->wallet_id);
-            return Response::success(['Withdrawals fetched successfully'], ['withdrawals' => $withdrawals]);
+            return Response::successResponse('Withdrawals fetched successfully', ['withdrawals' => $withdrawals]);
         } catch (\Exception $e) {
-            return Response::error([$e->getMessage()]);
+            return Response::errorResponse($e->getMessage());
         }
     }
 
@@ -405,13 +405,13 @@ class GraphController extends Controller
                 ->first();
 
             if (!$wallet) {
-                return Response::error(['Wallet not found']);
+                return Response::errorResponse('Wallet not found');
             }
 
             $updatedWallet = $this->graphService->updateWalletBalance($request->wallet_id);
-            return Response::success(['Balance refreshed successfully'], ['wallet' => $updatedWallet]);
+            return Response::successResponse('Balance refreshed successfully', ['wallet' => $updatedWallet]);
         } catch (\Exception $e) {
-            return Response::error([$e->getMessage()]);
+            return Response::errorResponse($e->getMessage());
         }
     }
 
@@ -430,9 +430,9 @@ class GraphController extends Controller
 
         try {
             $rate = $this->graphService->getExchangeRate($request->from, $request->to);
-            return Response::success(['Exchange rate fetched successfully'], ['rate' => $rate]);
+            return Response::successResponse('Exchange rate fetched successfully', ['rate' => $rate]);
         } catch (\Exception $e) {
-            return Response::error([$e->getMessage()]);
+            return Response::errorResponse($e->getMessage());
         }
     }
 }

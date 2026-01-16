@@ -75,6 +75,7 @@ class User extends Authenticatable
         'payscribe_tier' => 'string',
         'payscribe_customer_phone' => 'string',
         'payscribe_customer_country' => 'string',
+        'busha_recipient_id' => 'string',
     ];
 
     public function scopeEmailUnverified($query)

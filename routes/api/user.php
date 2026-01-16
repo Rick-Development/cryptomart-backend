@@ -42,9 +42,14 @@ Route::prefix("user")->name("api.user.")->group(function () {
 
         // Busha Integration
         Route::controller(App\Http\Controllers\Api\V1\User\BushaController::class)->prefix('busha')->group(function () {
-             Route::get('quote', 'quote');
+             Route::post('quote', 'quote');
              Route::post('trade', 'trade'); // buy/sell
              Route::get('history', 'history');
+             Route::get('transfer/{quoteId}', 'getTransfer');
+             Route::get('banks', 'banks');
+             Route::post('bank-accounts', 'addBankAccount');
+             Route::get('bank-accounts', 'getBankAccounts');
+             Route::delete('bank-accounts/{id}', 'deleteBankAccount');
         });
 
         Route::controller(WalletController::class)->prefix('wallets')->group(function () {
