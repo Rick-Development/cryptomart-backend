@@ -14,16 +14,19 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Exception;
 use App\Models\BushaPaymentDetail;
+use App\Services\SafehavenService;
 
 class BushaController extends Controller
 {
     protected $bushaService;
     public $quidaxService;
+    protected $safehavenService;
 
-    public function __construct(BushaService $bushaService, QuidaxService $quidaxService)
+    public function __construct(BushaService $bushaService, QuidaxService $quidaxService, SafehavenService $safehavenService)
     {
         $this->bushaService = $bushaService;
         $this->quidaxService = $quidaxService;
+        $this->safehavenService = $safehavenService;
     }
 
 
@@ -107,12 +110,14 @@ class BushaController extends Controller
                 
                 // Get the first (and only) matching address
                 $data = reset($data);
+                $network = $request->network == 'BEP20' ? 'BSC' : ($request->network == 'TRC20' ? 'TRX' : ($request->network == 'ERC20' ? 'Ethereum' : $request->network));
+                
                 
                 // Receiving crypto
                 $pay_out = [
                     "type" => "address",
                     "address" => $data['address'], // Use user's address or email
-                    "network" => $request->network ?? $targetCurrency,
+                    "network" => $network,
                 ];
                 
             } else {
@@ -235,24 +240,115 @@ class BushaController extends Controller
                 $q->where('code', $sourceCurrency);
             })->first();
 
-            if ($side == 'sell') {
-                $wallet = UserWallet::where('user_id', $user->id)->whereHas('currency', function($q) use ($targetCurrency) {
-                    $q->where('code', $targetCurrency);
-                })->first();
-            }else{
-            // $wallet->balance = 10000000000;
-            // $wallet->save();
-            if (!$wallet || $wallet->balance < $sourceAmount) {
-                throw new Exception("Insufficient $sourceCurrency balance. Required: $sourceAmount");
-            }
 
-            // Debit the user
-            $wallet->balance -= $sourceAmount;
-            $wallet->save();
-        }
-        return;
+            if ($side == 'sell') {
+                $response = $this->quidaxService->fetchUserWallet($user->quidax_id, strtolower($sourceCurrency));
+                if($response['status'] == 'success'){
+                $data = $response['data'];
+                $balance = $data['balance'];
+                if($balance < $sourceAmount){
+                    throw new Exception("Insufficient $sourceCurrency balance. Required: $sourceAmount but available: $balance");
+                }
+                }else{
+                    return Response::errorResponse($response['message']);
+                }
+            }else{
+                // $wallet->balance = 10000000000;
+                // $wallet->save();
+                if (!$wallet || $wallet->balance < $sourceAmount) {
+                    throw new Exception("Insufficient $sourceCurrency balance. Required: $sourceAmount");
+                }
+
+                // Debit the user
+                $wallet->balance -= $sourceAmount;
+                $wallet->save();
+            }
+        // return;
             // 2. Execute Transfer on Busha
             $transfer = $this->bushaService->executeQuote($request->quote_id, $reference);
+            $pay_in = $transfer['data']['pay_in'];
+            if($side == 'sell'){
+
+        // "pay_in": {
+        //     "address": "bc1qzl24hpjva8scqhe2vz6cmmpxrvndatdznhh5lv",
+        //     "expires_at": "2026-01-16T13:40:02.720236Z",
+        //     "network": "BTC",
+        //     "type": "address"
+        // },
+                $address = $pay_in['address'];
+                $newtork = $pay_in['network'];
+                $expires_at = $pay_in['expires_at'];
+                $quidax_id = auth()->user()->quidax_id;
+                if($expires_at < now()->toDateTimeString()){
+                    return Response::errorResponse('Pay in expired');
+                }
+                $data = [
+                    'address' => $address,
+                    'network' => strtolower($newtork),
+                    'amount' => $sourceAmount,
+                    'currency' => strtolower($sourceCurrency),
+                    'fund_uid' => $quidax_id,
+                    'transaction_note' => 'Trading of '.$targetCurrency.' to '.$sourceCurrency,
+                    'narration' => 'Trading of '.$targetCurrency.' to '.$sourceCurrency,
+                ];
+                
+                 $response = $this->quidaxService->create_withdrawal($quidax_id, $data);
+                 if($response['status'] == 'success'){
+                    
+                 }else{
+                    return Response::errorResponse($response['message']);
+                 }
+            }else{
+//  "pay_in": {
+//             "expires_at": "2026-01-15T23:48:05.22033144Z",
+//             "recipient_details": {
+//                 "account_name": "BDL/WAVECREST TRADING INSTITUTE Business",
+//                 "account_number": "7116494378",
+//                 "bank_code": "090645",
+//                 "bank_name": "Nombank MFB",
+//                 "email": "wavecrestfx@gmail.com"
+//             },
+//             "type": "temporary_bank_account"
+//         },
+                $expires_at = $pay_in['expires_at'];
+                $recipient_details = $pay_in['recipient_details'];
+                $type = $pay_in['type'];
+
+                $account_name = $recipient_details['account_name'];
+                $account_number = $recipient_details['account_number'];
+                $bank_code = $recipient_details['bank_code'];
+                $bank_name = $recipient_details['bank_name'];
+                $email = $recipient_details['email'];
+
+                // 1. Name Enquiry
+                $enquiry = $this->safehavenService->nameEnquiry($bank_code, $account_number);
+                $sessionId = $enquiry['sessionId'] ?? $enquiry['data']['sessionId'] ?? null;
+
+                if (!$sessionId) {
+                        throw new Exception("Failed to verify Busha payment account.");
+                }
+
+                // 2. Get User Debit Account (SafeHaven Sub-Account)
+                $debitAccountNumber = $user->virtualAccounts()->where('provider', 'safehaven')->value('account_number');
+                if (!$debitAccountNumber) {
+                        throw new Exception("User does not have a SafeHaven account to debit.");
+                }
+
+                // 3. Initiate Transfer
+                $transferPayload = [
+                    "saveBeneficiary" => false,
+                    "nameEnquiryReference" => $sessionId,
+                    "debitAccountNumber" => $debitAccountNumber,
+                    "beneficiaryBankCode" => $bank_code,
+                    "beneficiaryAccountNumber" => $account_number,
+                    "amount" => (float)$sourceAmount,
+                    "narration" => 'Trading of '.$targetCurrency.' to '.$sourceCurrency,
+                    "paymentReference" => "busha_trade_" . Str::random(12)
+                ];
+
+                $transferResponse = $this->safehavenService->transfer($transferPayload);
+                
+            }
             
             // 3. Record Transaction
             BushaTransaction::create([
