@@ -14,7 +14,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Exception;
 use App\Models\BushaPaymentDetail;
-use App\Services\SafehavenService;
+use App\Services\SafeHavenService;
 
 class BushaController extends Controller
 {
@@ -22,7 +22,7 @@ class BushaController extends Controller
     public $quidaxService;
     protected $safehavenService;
 
-    public function __construct(BushaService $bushaService, QuidaxService $quidaxService, SafehavenService $safehavenService)
+    public function __construct(BushaService $bushaService, QuidaxService $quidaxService, SafeHavenService $safehavenService)
     {
         $this->bushaService = $bushaService;
         $this->quidaxService = $quidaxService;

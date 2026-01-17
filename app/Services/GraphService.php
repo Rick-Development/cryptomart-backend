@@ -24,7 +24,7 @@ class GraphService
     protected function client()
     {
         return Http::withHeaders([
-            'x-api-key' => $this->secretKey,
+            'Authorization' => 'Bearer ' . $this->secretKey,
             'Content-Type' => 'application/json',
             'Accept' => 'application/json',
         ])->baseUrl($this->baseUrl);
@@ -38,36 +38,74 @@ class GraphService
         try {
             // Map user data to Graph expected format
             // Based on doc: https://usegraph.readme.io/reference/create-person
-            $payload = [
-                'first_name' => $user->firstname,
-                'last_name' => $user->lastname,
-                'email' => $user->email,
-                'phone_number' => $user->full_mobile ?? $user->mobile,
-                'date_of_birth' => $kycData['dob'] ?? null,
-                'address' => [
-                    'street' => $kycData['address'] ?? null,
-                    'city' => $kycData['city'] ?? null,
-                    'state' => $kycData['state'] ?? null,
-                    'postal_code' => $kycData['zip_code'] ?? null,
-                    'country' => 'NG', // Assuming NG for now based on context, or pass dynamically
-                ],
-                'documents' => [
-                    'id_number' => $kycData['id_number'] ?? null,
-                    'id_type' => $kycData['id_type'] ?? 'NIN', // BVN, NIN, PASSPORT etc
-                     // 'id_image' => ... if required base64 or url
+            // Map user data to Graph expected format
+            // Structure based on provided curl example
+            $idType = strtolower($kycData['id_type'] ?? 'passport'); // e.g. passport, nin
+            
+            // Prepare Documents
+            $documents = [
+                [
+                    'type' => $idType,
+                    'url' => 'https://rickdevelopment.com/logo.png',//$kycData['id_image_url'] ?? '',
+                    'issue_date' => '2020-01-01', // Default or fetch if available
+                    'expiry_date' => '2030-01-01', // Default or fetch if available
+                    'id_number' => $kycData['id_number']
                 ]
             ];
 
-            $response = $this->client()->post('/v1/people', $payload);
+            // Add Bank Statement if available
+            if (!empty($kycData['bank_statement_url'])) {
+                $documents[] = [
+                    'type' => 'bank_statement',
+                    'url' => 'https://rickdevelopment.com/logo.png',// $kycData['bank_statement_url'],
+                    'issue_date' => '2020-01-01', // Default
+                    'expiry_date' => '2030-01-01', // Default
+                ];
+            }
+
+            $payload = [
+                'id_level' => 'primary',
+                'id_type' => $idType,
+                'kyc_level' => 'basic',
+                'name_first' => $user->firstname,
+                'name_last' => $user->lastname,
+                'name_other' => '',
+                'email' => $user->email,
+                'phone' => $user->full_mobile ?? $user->mobile,
+                'dob' => $user->dob,
+                'id_number' => $user->id_number,// $kycData['id_number'],
+                'id_country' => 'NG',
+                'bank_id_number' => $user->bvn,// $kycData['bvn'] ?? null, // BVN
+                'address' => [
+                    'line1' => 'Address',//$kycData['address'] ?? 'Address',
+                    'line2' => '',
+                    'city' => $user->city,// $kycData['city'] ?? 'Lagos',
+                    'state' => $user->state,// $kycData['state'] ?? 'Lagos',
+                    'country' => 'NG',
+                    'postal_code' => $user->zip_code,// $kycData['zip_code'] ?? '100001',
+                ],
+                'background_information' => [
+                    'employment_status' => 'employed',
+                    'occupation' => 'Trader',
+                    'primary_purpose' => 'personal',
+                    'source_of_funds' => 'business',
+                    'expected_monthly_inflow' => 100000
+                ],
+                'documents' => $documents
+            ];
+
+            $response = $this->client()->post('/person', $payload);
+            \Log::info("Graph Create Person Response: " . $response->body());
 
             if ($response->successful()) {
-                $data = $response->json();
+                $responseData = $response->json();
+                $personData = $responseData['data'];
                 
                 return GraphCustomer::create([
                     'user_id' => $user->id,
-                    'graph_id' => $data['id'],
-                    'kyc_status' => $data['kyc_status'] ?? 'pending',
-                    'data' => $data,
+                    'graph_id' => $personData['id'],
+                    'kyc_status' => $personData['kyc_status'] ?? 'pending',
+                    'data' => $personData,
                 ]);
             }
 
@@ -91,26 +129,30 @@ class GraphService
 
         try {
             // Doc: https://usegraph.readme.io/reference/create-bank-account or equivalent for wallet
-            // Assuming payload based on typical structure
+            // Endpoint updated based on user sample
             $payload = [
                 'person_id' => $customer->graph_id,
                 'currency' => $currency,
+                'autosweep_enabled' => false,
+                'whitelist_enabled' => false,
+                'label' => "Wallet for " . $user->username ?? $user->email,
             ];
 
-            $response = $this->client()->post('/v1/virtual-accounts', $payload);
+            $response = $this->client()->post('/bank_account', $payload);
 
             if ($response->successful()) {
-                $data = $response->json();
+                $responseData = $response->json();
+                $walletData = $responseData['data'];
                 
                 return GraphWallet::create([
                     'user_id' => $user->id,
                     'graph_customer_id' => $customer->id,
-                    'wallet_id' => $data['id'],
-                    'account_number' => $data['account_number'] ?? null,
-                    'currency' => $data['currency'] ?? $currency,
-                    'balance' => $data['balance'] ?? 0,
-                    'status' => $data['status'] ?? 'active',
-                    'data' => $data,
+                    'wallet_id' => $walletData['id'],
+                    'account_number' => $walletData['account_number'] ?? null,
+                    'currency' => $walletData['currency'] ?? $currency,
+                    'balance' => $walletData['balance'] ?? 0,
+                    'status' => $walletData['status'] ?? 'active',
+                    'data' => $walletData,
                 ]);
             }
 
@@ -128,7 +170,7 @@ class GraphService
     public function getWallet($walletId)
     {
         try {
-            $response = $this->client()->get("/v1/virtual-accounts/{$walletId}");
+            $response = $this->client()->get("/bank_account/{$walletId}");
             
             if ($response->successful()) {
                 return $response->json();
@@ -145,8 +187,8 @@ class GraphService
     public function getTransactions($walletId, $page = 1, $limit = 20)
     {
         try {
-            $response = $this->client()->get("/v1/transactions", [
-                'virtual_account_id' => $walletId,
+            $response = $this->client()->get("/transaction", [
+                'account_id' => $walletId,
                 'page' => $page,
                 'limit' => $limit
             ]);
@@ -163,36 +205,13 @@ class GraphService
     // ==================== DEPOSIT METHODS ====================
 
     /**
-     * Create Deposit Address for Crypto
-     */
-    public function createDepositAddress(User $user, $walletId, $currency = 'USDT')
-    {
-        try {
-            $payload = [
-                'virtual_account_id' => $walletId,
-                'currency' => $currency,
-            ];
-
-            $response = $this->client()->post('/v1/deposit-addresses', $payload);
-
-            if ($response->successful()) {
-                return $response->json();
-            }
-
-            throw new Exception("Failed to create deposit address: " . ($response->json()['message'] ?? $response->reason()));
-        } catch (Exception $e) {
-            throw $e;
-        }
-    }
-
-    /**
      * Get Deposit History
      */
     public function getDeposits($walletId, $page = 1, $limit = 20)
     {
         try {
-            $response = $this->client()->get("/v1/deposits", [
-                'virtual_account_id' => $walletId,
+            $response = $this->client()->get("/deposit", [
+                'account_id' => $walletId,
                 'page' => $page,
                 'limit' => $limit
             ]);
@@ -213,12 +232,14 @@ class GraphService
     {
         try {
             $payload = [
-                'virtual_account_id' => $walletId,
-                'amount' => $amount,
-                'currency' => $currency,
+                'account_id' => $walletId,
+                'amount' => (int) ($amount * 10), // Convert to subunits (e.g., dollars to cents)
+                // 'currency' => $currency, // Sample doesn't show currency, but usually amount implies it on the account.
+                'description' => 'Mock deposit via API',
+                'sender_name' => 'Test Sender',
             ];
 
-            $response = $this->client()->post('/v1/deposits/mock', $payload);
+            $response = $this->client()->post('/deposit/mock', $payload);
 
             if ($response->successful()) {
                 return $response->json();
@@ -230,15 +251,13 @@ class GraphService
         }
     }
 
-    // ==================== WITHDRAWAL METHODS ====================
-
     /**
      * List Supported Banks
      */
     public function listBanks($country = 'NG')
     {
         try {
-            $response = $this->client()->get('/v1/banks', [
+            $response = $this->client()->get('/bank', [
                 'country' => $country
             ]);
 
@@ -262,7 +281,7 @@ class GraphService
                 'account_number' => $accountNumber,
             ];
 
-            $response = $this->client()->post('/v1/banks/resolve', $payload);
+            $response = $this->client()->post('/bank/resolve', $payload);
 
             if ($response->successful()) {
                 return $response->json();
@@ -292,7 +311,7 @@ class GraphService
                 'details' => $data['details'], // bank_code, account_number, account_name OR crypto address
             ];
 
-            $response = $this->client()->post('/v1/payout-destinations', $payload);
+            $response = $this->client()->post('/payout_destination', $payload);
 
             if ($response->successful()) {
                 return $response->json();
@@ -311,15 +330,15 @@ class GraphService
     {
         try {
             $payload = [
-                'virtual_account_id' => $walletId,
-                'payout_destination_id' => $data['destination_id'],
-                'amount' => $data['amount'],
+                'account_id' => $walletId,
+                'destination_id' => $data['destination_id'],
+                'amount' => (int) ($data['amount'] * 100), // Convert to subunits
                 'currency' => $data['currency'] ?? 'NGN',
                 'reference' => $data['reference'] ?? null,
                 'narration' => $data['narration'] ?? 'Withdrawal',
             ];
 
-            $response = $this->client()->post('/v1/payouts', $payload);
+            $response = $this->client()->post('/payout', $payload);
 
             if ($response->successful()) {
                 $responseData = $response->json();
@@ -328,11 +347,11 @@ class GraphService
                 GraphTransaction::create([
                     'user_id' => $user->id,
                     'graph_wallet_id' => GraphWallet::where('wallet_id', $walletId)->value('id'),
-                    'transaction_id' => $responseData['id'],
+                    'transaction_id' => $responseData['data']['id'] ?? $responseData['id'],
                     'type' => 'withdrawal',
                     'amount' => $data['amount'],
                     'currency' => $data['currency'] ?? 'NGN',
-                    'status' => $responseData['status'] ?? 'pending',
+                    'status' => $responseData['data']['status'] ?? $responseData['status'] ?? 'pending',
                     'reference' => $data['reference'],
                     'description' => $data['narration'] ?? 'Withdrawal',
                     'metadata' => $responseData,
@@ -353,8 +372,8 @@ class GraphService
     public function getPayouts($walletId, $page = 1, $limit = 20)
     {
         try {
-            $response = $this->client()->get('/v1/payouts', [
-                'virtual_account_id' => $walletId,
+            $response = $this->client()->get('/payout', [
+                'account_id' => $walletId,
                 'page' => $page,
                 'limit' => $limit
             ]);
@@ -374,7 +393,8 @@ class GraphService
     public function updateWalletBalance($walletId)
     {
         try {
-            $walletData = $this->getWallet($walletId);
+            $response = $this->getWallet($walletId);
+            $walletData = $response['data'] ?? [];
             
             $wallet = GraphWallet::where('wallet_id', $walletId)->first();
             if ($wallet && isset($walletData['balance'])) {
@@ -384,12 +404,10 @@ class GraphService
             
             return null;
         } catch (Exception $e) {
-            Log::error("Failed to update wallet balance: " . $e->getMessage());
+            \Log::error("Failed to update wallet balance: " . $e->getMessage());
             return null;
         }
     }
-
-    // ==================== CONVERSION METHODS ====================
 
     /**
      * Get Exchange Rate
@@ -397,7 +415,7 @@ class GraphService
     public function getExchangeRate($fromCurrency, $toCurrency)
     {
         try {
-            $response = $this->client()->get('/v1/rates', [
+            $response = $this->client()->get('/rate', [
                 'from' => $fromCurrency,
                 'to' => $toCurrency
             ]);
@@ -418,13 +436,13 @@ class GraphService
     {
         try {
             $payload = [
-                'virtual_account_id' => $walletId,
-                'from_currency' => $data['from_currency'],
-                'to_currency' => $data['to_currency'],
-                'amount' => $data['amount'],
+                'account_id' => $walletId,
+                'from' => $data['from_currency'], // Likely 'from' instead of 'from_currency'
+                'to' => $data['to_currency'],   // Likely 'to' instead of 'to_currency'
+                'amount' => (int) ($data['amount'] * 100), // Convert to subunits
             ];
 
-            $response = $this->client()->post('/v1/conversions', $payload);
+            $response = $this->client()->post('/conversion', $payload);
 
             if ($response->successful()) {
                 $responseData = $response->json();
@@ -433,11 +451,11 @@ class GraphService
                 GraphTransaction::create([
                     'user_id' => $user->id,
                     'graph_wallet_id' => GraphWallet::where('wallet_id', $walletId)->value('id'),
-                    'transaction_id' => $responseData['id'],
+                    'transaction_id' => $responseData['data']['id'] ?? $responseData['id'],
                     'type' => 'conversion',
                     'amount' => $data['amount'],
                     'currency' => $data['from_currency'],
-                    'status' => $responseData['status'] ?? 'completed',
+                    'status' => $responseData['data']['status'] ?? $responseData['status'] ?? 'completed',
                     'reference' => 'CONV_' . time(),
                     'description' => "Converted {$data['amount']} {$data['from_currency']} to {$data['to_currency']}",
                     'metadata' => $responseData,

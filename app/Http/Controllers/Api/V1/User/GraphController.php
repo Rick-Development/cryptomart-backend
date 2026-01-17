@@ -29,6 +29,9 @@ class GraphController extends Controller
             'zip_code' => 'required|string',
             'id_number' => 'required|string',
             'id_type' => 'required|string', // NIN, BVN, PASSPORT
+            'id_image' => 'required|file|mimes:jpeg,png,jpg,pdf',
+            'bank_statement' => 'nullable|file|mimes:jpeg,png,jpg,pdf',
+            'bvn' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -41,7 +44,35 @@ class GraphController extends Controller
                 return Response::errorResponse('Customer already exists');
             }
 
-            $customer = $this->graphService->createPerson($user, $validator->validated());
+            $validatedData = $validator->validated();
+
+            // Handle ID Image
+            if ($request->hasFile('id_image')) {
+                $file = $request->file('id_image');
+                $filename = time() . '_id_' . $file->getClientOriginalName();
+                $path = $file->storeAs('documents', $filename, 'public');
+                // $validatedData['id_image_url'] = asset('storage/' . $path);
+                
+                // TEMP: Use public URL for testing since Graph cannot reach localhost
+                $validatedData['id_image_url'] = "https://res.cloudinary.com/rapidpay-africa/image/upload/v1682887473/sandbox/DRIVERS_LICENSE_dpf491.png";
+            } else {
+                 $validatedData['id_image_url'] = null;
+            }
+
+            // Handle Bank Statement
+            if ($request->hasFile('bank_statement')) {
+                $file = $request->file('bank_statement');
+                $filename = time() . '_stmt_' . $file->getClientOriginalName();
+                $path = $file->storeAs('documents', $filename, 'public');
+                // $validatedData['bank_statement_url'] = asset('storage/' . $path);
+
+                // TEMP: Use public URL for testing since Graph cannot reach localhost
+                $validatedData['bank_statement_url'] = "https://res.cloudinary.com/rapidpay-africa/image/upload/v1742226747/dummy_q5dttk.pdf";
+            } else {
+                 $validatedData['bank_statement_url'] = null;
+            }
+
+            $customer = $this->graphService->createPerson($user, $validatedData);
             return Response::successResponse('Customer created successfully', ['customer' => $customer]);
         } catch (\Exception $e) {
             return Response::errorResponse($e->getMessage());
@@ -74,6 +105,7 @@ class GraphController extends Controller
             return Response::successResponse('Wallet created successfully', ['wallet' => $wallet]);
 
         } catch (\Exception $e) {
+            \Log::info($e->getMessage());
             // Check if user needs to be created first
             if (str_contains($e->getMessage(), 'not a registered Graph customer')) {
                  return Response::errorResponse('Please create a Graph profile/customer first.');
@@ -126,7 +158,8 @@ class GraphController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'wallet_id' => 'required|string',
-            'currency' => 'required|in:USDT,USDC,BTC,ETH',
+            'currency' => 'required|in:USDT,USDC',
+            'network' => 'required|in:ERC20,TRC20,POL',
         ]);
 
         if ($validator->fails()) {
@@ -143,7 +176,7 @@ class GraphController extends Controller
                 return Response::errorResponse('Wallet not found');
             }
 
-            $address = $this->graphService->createDepositAddress($user, $request->wallet_id, $request->currency);
+            $address = $this->graphService->createDepositAddress($user, $request->wallet_id, $request->currency, $request->network);
             return Response::successResponse('Deposit address created successfully', ['address' => $address]);
         } catch (\Exception $e) {
             return Response::errorResponse($e->getMessage());
