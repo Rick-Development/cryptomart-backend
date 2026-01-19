@@ -13,6 +13,7 @@ use App\Models\KycVerification;
 use Illuminate\Support\Str;
 use Exception;
 use Illuminate\Support\Facades\Log;
+use App\Notifications\User\SafeHavenCreditNotification;
 
 class SafeHavenService
 {
@@ -210,6 +211,9 @@ class SafeHavenService
                 'fees_deducted' => $providerFee,
                 'reference' => $reference
             ]);
+
+            // Notify User
+            $user->notify(new SafeHavenCreditNotification($creditAmount, $reference));
 
             return true;
         } catch (Exception $e) {

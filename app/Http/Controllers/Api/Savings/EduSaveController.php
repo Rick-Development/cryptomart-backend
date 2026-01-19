@@ -10,6 +10,7 @@ use App\Models\SavingsTransaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
+use App\Notifications\User\SavingsNotification;
 
 class EduSaveController extends Controller
 {
@@ -87,6 +88,9 @@ class EduSaveController extends Controller
             'source' => 'wallet',
             'narration' => 'EduSave Initial Deposit: ' . $eduSave->title
         ]);
+
+        // Notify
+        $user->notify(new SavingsNotification('EduSave', 'Created', $request->amount));
 
         return Response::successResponse('EduSave plan created successfully', ['data' => $eduSave]);
     }

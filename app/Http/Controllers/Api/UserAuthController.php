@@ -160,7 +160,7 @@ class UserAuthController extends Controller
             $data['user'] = $user;
 
 
-            // $this->loginNotify($user);
+            $this->loginNotify($user);
 
             //   return response()->json([
             //     'status' => 'success',
@@ -211,7 +211,7 @@ class UserAuthController extends Controller
             $data['user'] = $user;
 
             // Notify the user of the login
-            // $this->loginNotify($user);
+            $this->loginNotify($user);
 
             return response()->json($this->withSuccess($data));
         } catch (\Exception $e) {

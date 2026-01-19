@@ -13,6 +13,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Helpers\Payscribe\PayscribePayoutHelper;
 use App\Http\Helpers\Payscribe\PayscribeBalanceHelper;
 use App\Http\Helpers\Payscribe\PayscribeSavingsHelper;
+use App\Notifications\User\SavingsNotification;
 
 class PayscribeSavingsController extends Controller
 {
@@ -65,6 +66,9 @@ class PayscribeSavingsController extends Controller
             'target_amount' => $request->target_amount,
             'status' => 'active',
         ]);
+
+        // Notify
+        $user->notify(new SavingsNotification('Payscribe Savings', 'Created', $request->target_amount));
 
         return Response::success('Savings account created successfully.', $savings, 201);
     }
@@ -136,6 +140,9 @@ class PayscribeSavingsController extends Controller
             $wallet = UserWallet::where('user_id', $user->id)->first();
             $savings = SavingsTargets::where('plan_id', $savingsId)->first();
             $user_savings = Savings::where('user_id', $user->id)->firstOrFail();
+
+            // Notify
+            $user->notify(new SavingsNotification('Payscribe Savings', 'Topup', $amount));
 
             return Response::success('Savings top-up successful', [
                 'wallet_balance' => $wallet->balance,
@@ -220,6 +227,9 @@ class PayscribeSavingsController extends Controller
 
             $savings = SavingsTargets::where('plan_id', $request->plan_id)->first();
             $user_savings = Savings::where('user_id', $user->id)->firstOrFail();
+            // Notify
+            $user->notify(new SavingsNotification('Payscribe Savings', 'Withdrawn', $amount));
+
             return Response::success('Withdrawal successful', [
                 'details' => $savings,
                 'total_savings' => $user_savings->balance

@@ -8,6 +8,7 @@ use App\Models\TargetSavings;
 use App\Models\UserWallet;
 use App\Models\SavingsTransaction;
 use Illuminate\Http\Request;
+use App\Notifications\User\SavingsNotification;
 use Illuminate\Support\Facades\Validator;
 
 class TargetController extends Controller
@@ -46,6 +47,9 @@ class TargetController extends Controller
             'frequency' => $request->frequency,
             'status' => 'active',
         ]);
+
+        // Notify
+        auth()->user()->notify(new SavingsNotification('Target Savings', 'Created', $request->target_amount));
 
         return Response::success(['message' => 'Target created successfully', 'data' => $target]);
     }
@@ -100,6 +104,9 @@ class TargetController extends Controller
             'source' => 'wallet',
             'narration' => 'Target Savings QuickSave: ' . $target->title
         ]);
+
+        // Notify
+        $user->notify(new SavingsNotification('Target Savings', 'Topup', $request->amount));
 
         return Response::success(['message' => 'Quick save successful', 'data' => $target]);
     }
@@ -162,6 +169,9 @@ class TargetController extends Controller
             'source' => 'target',
             'narration' => 'Target Savings Broken (Funds Returned)' . ($penalty > 0 ? " - 2% Penalty Applied: $penalty" : "")
         ]);
+
+        // Notify
+        $user->notify(new SavingsNotification('Target Savings', 'Withdrawn', $amountToReturn));
 
         return Response::success(['message' => 'Target savings broken successfully.' . ($penalty > 0 ? " A 2% early withdrawal penalty of $penalty was applied." : " Principal returned to wallet.")]);
     }

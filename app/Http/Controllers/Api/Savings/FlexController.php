@@ -9,6 +9,7 @@ use App\Models\UserWallet;
 use App\Models\SavingsTransaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use App\Notifications\User\SavingsNotification;
 
 class FlexController extends Controller
 {
@@ -68,6 +69,9 @@ class FlexController extends Controller
             'source' => 'wallet',
             'narration' => 'Flex Savings Deposit'
         ]);
+
+        // Notify
+        $user->notify(new SavingsNotification('Flex Savings', 'Topup', $amount));
 
         return Response::success(['message' => 'Deposit successful', 'balance' => $flex->balance]);
     }
@@ -134,6 +138,9 @@ class FlexController extends Controller
             'source' => 'flex',
             'narration' => 'Flex Savings Withdrawal' . ($penaltyFee > 0 ? " - Limit Fee Applied: $penaltyFee" : "")
         ]);
+
+        // Notify
+        $user->notify(new SavingsNotification('Flex Savings', 'Withdrawn', $amount));
 
         return Response::success([
             'message' => 'Withdrawal successful' . ($penaltyFee > 0 ? " (Fee of $penaltyFee applied)" : ""),

@@ -10,6 +10,7 @@ use App\Http\Helpers\Payscribe\BillsPayments\BillPaymentHelper;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use App\Notifications\User\BillPaymentNotification;
 
 
 class PayscribeElectricityBillsController extends Controller
@@ -109,6 +110,15 @@ class PayscribeElectricityBillsController extends Controller
                    'token' =>  $response['message']['details']['token'],
                ];
             //    $this->mail($user, 'TOKEN_PURCHSED', $params);
+
+                // Notify User
+                auth()->user()->notify(new BillPaymentNotification(
+                    'Electricity Bill',
+                    $data['amount'],
+                    $data['service'],
+                    'Successful',
+                    $response['message']['details']['trans_id'] ?? $referenceIdString
+                ));
             }
 
             return $response;
@@ -173,6 +183,15 @@ class PayscribeElectricityBillsController extends Controller
                 'token' =>  $response['message']['details']['token'],
             ];
             $this->mail($user, 'TOKEN_PURCHSED', $params);
+
+             // Notify User
+             auth()->user()->notify(new BillPaymentNotification(
+                 'Electricity Bill',
+                 $data['amount'],
+                 $data['service'] ?? 'Electricity',
+                 'Successful',
+                 $response['message']['details']['trans_id'] ?? 'N/A'
+             ));
         }
 
         return $response;

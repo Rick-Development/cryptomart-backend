@@ -10,6 +10,7 @@ use App\Models\LoanOffer;
 use App\Services\LoanService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use App\Notifications\User\LoanNotification;
 
 class LoanController extends Controller
 {
@@ -42,6 +43,14 @@ class LoanController extends Controller
                 $request->amount,
                 $request->duration_days
             );
+
+            // Notify
+            auth()->user()->notify(new LoanNotification(
+                'Lending Offer',
+                $request->amount,
+                $request->asset,
+                'Created'
+            ));
 
             return Response::successResponse('Lending offer created successfully', $result, 201);
         } catch (\Exception $e) {
@@ -92,6 +101,14 @@ class LoanController extends Controller
                 $request->collateral_asset
             );
 
+            // Notify
+            auth()->user()->notify(new LoanNotification(
+                'Borrow Request',
+                $request->amount,
+                $request->asset,
+                'Created'
+            ));
+
             return Response::successResponse($result['message'], $result['data'], 201);
         } catch (\Exception $e) {
             return Response::errorResponse($e->getMessage());
@@ -105,6 +122,17 @@ class LoanController extends Controller
     {
         try {
             $result = $this->loanService->repayLoan(auth()->user(), $loanId);
+
+            // Notify
+            $loan = Loan::find($loanId);
+            if ($loan) {
+                auth()->user()->notify(new LoanNotification(
+                    'Loan Repayment',
+                    $loan->amount,
+                    $loan->asset ?? 'N/A',
+                    'Completed'
+                ));
+            }
 
             return Response::successResponse('Loan repaid successfully', $result);
         } catch (\Exception $e) {

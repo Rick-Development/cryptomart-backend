@@ -11,6 +11,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Helpers\Payscribe\PayscribeBalanceHelper;
 use App\Http\Helpers\Payscribe\BillsPayments\DataBundleHelper;
 use App\Http\Helpers\Payscribe\BillsPayments\BillPaymentHelper;
+use App\Notifications\User\BillPaymentNotification;
 
 
 class PayscribeDataBundleController extends Controller
@@ -83,6 +84,15 @@ class PayscribeDataBundleController extends Controller
 
             $this->payscribeBalanceHelper->createTransaction($data, $response, $this->billType);
             // $this->sendBillPaymentEmail($data['amount'], $this->billType);
+
+            // Notify User
+            auth()->user()->notify(new BillPaymentNotification(
+                'Data Bundle',
+                $amount,
+                $data['network'],
+                'Successful',
+                $response['message']['details']['ref'] ?? $referenceIdString
+            ));
         }
 
         return $response;

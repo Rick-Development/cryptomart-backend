@@ -8,6 +8,8 @@ use App\Models\BushaTransaction;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use App\Models\UserWallet;
+use App\Models\User;
+use App\Notifications\User\BushaTradeNotification;
 
 class BushaWebhookController extends Controller
 {
@@ -75,6 +77,13 @@ class BushaWebhookController extends Controller
             if ($transaction->type === 'sell') {
                  $this->creditWallet($transaction->user_id, explode('-', $transaction->pair)[1], $transaction->total);
             }
+
+            // Notify User
+            $user = User::find($transaction->user_id);
+            if ($user) {
+                $user->notify(new BushaTradeNotification($transaction));
+            }
+
         } 
         
         // Logic for "cancelled" or "failed"
@@ -90,6 +99,12 @@ class BushaWebhookController extends Controller
             if ($transaction->type === 'sell') {
                 // Refund Crypto (if execution involved debiting crypto balance first)
                  $this->creditWallet($transaction->user_id, explode('-', $transaction->pair)[0], $transaction->amount);
+            }
+
+            // Notify User
+            $user = User::find($transaction->user_id);
+            if ($user) {
+                $user->notify(new BushaTradeNotification($transaction));
             }
         }
     }

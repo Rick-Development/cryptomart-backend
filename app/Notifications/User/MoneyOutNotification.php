@@ -33,7 +33,7 @@ class MoneyOutNotification extends Notification
      */
     public function via($notifiable)
     {
-        return ['mail'];
+        return ['mail', 'database'];
     }
 
     /**
@@ -78,6 +78,18 @@ class MoneyOutNotification extends Notification
     {
         return [
             //
+        ];
+    }
+
+    public function toDatabase($notifiable)
+    {
+        $data = $this->data;
+        return [
+            'title' => "Money Out Initiated",
+            'message' => "Your money out request of " . get_amount($data->request_amount) . " " . get_default_currency_code() . " is pending.",
+            'amount' => $data->request_amount,
+            'transaction_id' => $data->trx_id,
+            'type' => 'MONEY_OUT',
         ];
     }
 }

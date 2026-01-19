@@ -12,6 +12,7 @@ use App\Traits\Notify;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use App\Notifications\User\BillPaymentNotification;
 
 
 class PayscribeAirtimeController extends Controller
@@ -66,6 +67,15 @@ class PayscribeAirtimeController extends Controller
             if ($response['status'] === true) {
                 $this->payscribeBalanceHelper->createTransaction($data, $response, $this->billType);
                 $this->deductAmount($data['amount']);
+
+                // Notify User
+                auth()->user()->notify(new BillPaymentNotification(
+                    'Airtime',
+                    $data['amount'],
+                    $data['network'],
+                    'Successful',
+                    $response['message']['details']['ref'] ?? $refIdString
+                ));
             }
             return $response;
         } catch (\Exception $e) {

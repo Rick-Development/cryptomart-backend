@@ -12,6 +12,7 @@ use App\Models\UserWallet;
 use App\Models\SavingsTransaction;
 use App\Models\SavingsPlan;
 use Illuminate\Support\Carbon;
+use App\Notifications\User\SavingsNotification;
 
 class SafeLockController extends Controller
 {
@@ -100,6 +101,9 @@ class SafeLockController extends Controller
             'narration' => 'SafeLock Creation: ' . $lock->title
         ]);
 
+        // Notify
+        $user->notify(new SavingsNotification('SafeLock', 'Created', $request->amount));
+
         return Response::success(['message' => 'SafeLock created successfully', 'data' => $lock]);
     }
 
@@ -161,6 +165,9 @@ class SafeLockController extends Controller
             'source' => 'safelock',
             'narration' => 'SafeLock Broken (Early Withdrawal)' . ($penalty > 0 ? " - Interest Forfeited & 1% Penalty Applied: $penalty" : "")
         ]);
+
+        // Notify
+        $user->notify(new SavingsNotification('SafeLock', 'Withdrawn', $amountToReturn));
 
         return Response::success(['message' => 'SafeLock broken successfully. ' . ($penalty > 0 ? "Interest forfeited and a 1% penalty of $penalty was applied." : "Funds returned to wallet.")]);
     }

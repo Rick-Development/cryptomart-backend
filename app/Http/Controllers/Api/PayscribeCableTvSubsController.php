@@ -11,6 +11,7 @@ use App\Http\Controllers\API\BillPurchaseController;
 use App\Http\Helpers\Payscribe\PayscribeBalanceHelper;
 use App\Http\Helpers\Payscribe\BillsPayments\BillPaymentHelper;
 use App\Http\Helpers\Payscribe\BillsPayments\CableTVSubscriptionHelper;
+use App\Notifications\User\BillPaymentNotification;
 
 
 class PayscribeCableTvSubsController extends Controller
@@ -142,6 +143,15 @@ class PayscribeCableTvSubsController extends Controller
 
                 $this->payscribeBalanceHelper->createTransaction($data, $response, $this->billType);
 
+                // Notify User
+                auth()->user()->notify(new BillPaymentNotification(
+                    'Cable TV',
+                    $data['amount'],
+                    $data['service'],
+                    'Successful',
+                    $response['message']['details']['ref'] ?? $referenceIdString
+                ));
+
             }
             return $response;
         } catch (\Exception $e) {
@@ -224,6 +234,14 @@ class PayscribeCableTvSubsController extends Controller
             if ($response['status'] === true) {
                 $this->payscribeBalanceHelper->createTransaction($data, $response, $this->billType);
 
+                // Notify User
+                auth()->user()->notify(new BillPaymentNotification(
+                    'Cable TV Topup',
+                    $data['amount'],
+                    $data['service'],
+                    'Successful',
+                    $response['message']['details']['ref'] ?? $referenceIdString
+                ));
             }
             return $response;
         } catch (\Exception $e) {

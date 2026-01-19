@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\DB;
 use Exception;
 use App\Models\BushaPaymentDetail;
 use App\Services\SafeHavenService;
+use App\Notifications\User\BushaTradeNotification;
 
 class BushaController extends Controller
 {
@@ -352,7 +353,8 @@ class BushaController extends Controller
             }
             
             // 3. Record Transaction
-            BushaTransaction::create([
+            // 3. Record Transaction
+            $transaction = BushaTransaction::create([
                 'id' => $reference,
                 'user_id' => $user->id,
                 'reference' => $reference,
@@ -365,6 +367,9 @@ class BushaController extends Controller
                 'status' => 'pending', 
                 'metadata' => array_merge($transfer, ['quote' => $quoteDetails]),
             ]);
+
+            // Notify User of Trade Initiation
+            $user->notify(new BushaTradeNotification($transaction));
             
             // Note: The credits (Crypto for Buy, Fiat for Sell) should happen via Webhook OR immediately if we trust Busha.
             // Search result said "Execute...". Transfers usually go to "pending" or "completed".
@@ -495,4 +500,46 @@ class BushaController extends Controller
         $account->delete();
         return Response::successResponse('Bank account deleted successfully');
     }
+
+
+    public function getCurrencies(Request $request) {
+        $validator = Validator::make($request->all(), [
+            'side' => 'required|in:buy,sell',
+        ]);
+
+        if ($validator->fails()) {
+            return Response::errorResponse("Invalid side", $validator->errors()->all());
+        }
+
+        $side = $request->side;
+        if($side == 'buy'){
+            $side = 'is_ramp_buy_supported';
+        }else{
+            $side = 'is_ramp_sell_supported';
+        }
+
+        $response = $this->bushaService->getCurrencies();
+        $currencies = [];
+        foreach ($response['data'] as $key => $value) {
+            if($value[$side] == true){
+                $currencies[$key] = $value;
+            }
+        }
+        
+        return Response::successResponse($response['message'],  $currencies);
+    }
+
+    public function getNetworks(Request $request) {
+        $validator = Validator::make($request->all(), [
+            'currency' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return Response::errorResponse("Invalid currency", $validator->errors()->all());
+        }
+
+        $response = $this->bushaService->getNetworks($request->currency);
+        return Response::successResponse($response['message'],  $response['data']['supported_networks']);
+    }
+
 }

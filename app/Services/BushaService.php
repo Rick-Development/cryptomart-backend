@@ -231,4 +231,33 @@ class BushaService
 
         return $response->json();
     }
+
+
+
+    public function getCurrencies()
+    {
+        $response = $this->client()->get("{$this->baseUrl}/v1/currencies?sort=asc&ramp=true");
+        // \Log::info('Busha currencies response', $response->json());
+
+        if ($response->failed()) {
+            throw new Exception($response->json('message') ?? 'Failed to fetch currencies');
+        }
+
+        return $response->json();
+    }
+
+
+    public function getNetworks($currency)
+    {
+        $response = $this->client()->get("{$this->baseUrl}/v1/currencies/{$currency}");
+        // \Log::info('Busha currencies response', $response->json());
+
+        if ($response->failed()) {
+            throw new Exception($response->json('message') ?? 'Failed to fetch currencies');
+        }
+
+        return $response->json();
+    }
+
 }
+

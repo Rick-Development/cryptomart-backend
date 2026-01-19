@@ -50,6 +50,8 @@ Route::prefix("user")->name("api.user.")->group(function () {
              Route::post('bank-accounts', 'addBankAccount');
              Route::get('bank-accounts', 'getBankAccounts');
              Route::delete('bank-accounts/{id}', 'deleteBankAccount');
+             Route::get('currencies', 'getCurrencies');
+             Route::get('networks', 'getNetworks');
         });
 
         Route::controller(WalletController::class)->prefix('wallets')->group(function () {
