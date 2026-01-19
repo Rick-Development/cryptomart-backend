@@ -213,6 +213,32 @@
                         ],
                         'dropdown'      => [
                             [
+                                'title'     => "Crypto Loans",
+                                'icon'      => "menu-icon las la-hand-holding-usd",
+                                'links'     => [
+                                    [
+                                        'title'     => "All Loans",
+                                        'route'     => "admin.loans.index",
+                                    ],
+                                    [
+                                        'title'     => "Lending Offers",
+                                        'route'     => "admin.loans.offers",
+                                    ],
+                                    [
+                                        'title'     => "Borrow Requests",
+                                        'route'     => "admin.loans.requests",
+                                    ],
+                                    [
+                                        'title'     => "Statistics",
+                                        'route'     => "admin.loans.statistics",
+                                    ],
+                                    [
+                                        'title'     => "Overdue Loans",
+                                        'route'     => "admin.loans.overdue",
+                                    ]
+                                ],
+                            ],
+                            [
                                 'title'     => "P2P Marketplace",
                                 'icon'      => "menu-icon las la-exchange-alt",
                                 'links'     => [

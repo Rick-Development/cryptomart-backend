@@ -455,6 +455,18 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/', 'index')->name('index');
     });
 
+    // Crypto Loans
+    Route::controller(App\Http\Controllers\Admin\LoanAdminController::class)->prefix('loans')->name('loans.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/offers', 'getLendingOffers')->name('offers');
+        Route::get('/requests', 'getBorrowRequests')->name('requests');
+        Route::get('/statistics', 'getStatistics')->name('statistics');
+        Route::get('/overdue', 'getOverdueLoans')->name('overdue');
+        Route::get('/{id}', 'show')->name('show');
+        Route::post('/{id}/liquidate', 'forceLiquidate')->name('liquidate');
+        Route::post('/{id}/mark-overdue', 'markOverdue')->name('mark.overdue');
+    });
+
     // P2P Marketplace
     Route::prefix('p2p')->name('p2p.')->group(function () {
         // Ads

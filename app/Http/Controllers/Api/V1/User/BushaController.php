@@ -94,7 +94,7 @@ class BushaController extends Controller
                 // $response = $this->quidaxService = 
                 
                 $response = $this->quidaxService->fetchPaymentAddressses(auth()->user()->quidax_id, strtolower($request->target_currency));
-                // \Log::info($response);
+                \Log::info($response);
                 $data = $response['data'];
                 $data = array_filter($data, function ($item) use ($request) {
                     return $item['network'] === strtolower($request->network);
@@ -121,6 +121,7 @@ class BushaController extends Controller
                 ];
                 
             } else {
+                $network = $request->network == 'BEP20' ? 'BSC' : ($request->network == 'TRC20' ? 'TRX' : ($request->network == 'ERC20' ? 'Ethereum' : $request->network));
 
                 // SELL: User spends CRYPTO to get FIAT (or another crypto)
                 // Pay In: Source currency (crypto user sells)
@@ -129,7 +130,7 @@ class BushaController extends Controller
                 // Paying with crypto
                 $pay_in = [
                     "type" => "address",
-                    "network" => $request->network ?? $sourceCurrency,
+                    "network" => $request->network ?  $network : $sourceCurrency,
                 ];
                 
                 if ($targetIsCrypto) {
@@ -141,7 +142,7 @@ class BushaController extends Controller
                     ];
                 } else {
                     if ($user->busha_recipient_id == null) {
-                     return $recipient = $this->bushaService->createRecipient($user);
+                      $recipient = $this->bushaService->createRecipient($user);
                       if ($recipient == false) {
                         return Response::errorResponse('Failed to create trading account');
                       }
@@ -176,7 +177,7 @@ class BushaController extends Controller
             // Call Busha API
             $bushaResponse = $this->bushaService->quote($payload);
 
-            // \Log::info('Busha quote response', $bushaResponse);
+            \Log::info('Busha quote response', $bushaResponse);
             
             // Check for errors
             if (isset($bushaResponse['error'])) {

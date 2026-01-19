@@ -80,6 +80,7 @@ class BushaService
 
         $response = $this->client()->post("{$this->baseUrl}/v1/quotes", $payload);
 
+        \Log::info('Busha quote response', $response->json());
         if ($response->failed()) {
             \Illuminate\Support\Facades\Log::error('Busha Quote Failed', [
                 'status' => $response->status(),
