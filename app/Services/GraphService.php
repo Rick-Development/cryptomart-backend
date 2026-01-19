@@ -73,16 +73,16 @@ class GraphService
                 'email' => $user->email,
                 'phone' => $user->full_mobile ?? $user->mobile,
                 'dob' => $user->dob,
-                'id_number' => $user->id_number,// $kycData['id_number'],
+                'id_number' => $kycData['id_number'],
                 'id_country' => 'NG',
-                'bank_id_number' => $user->bvn,// $kycData['bvn'] ?? null, // BVN
+                'bank_id_number' => $kycData['bvn'] ?? null, // BVN
                 'address' => [
-                    'line1' => 'Address',//$kycData['address'] ?? 'Address',
+                    'line1' => $kycData['address'] ?? 'Address',
                     'line2' => '',
-                    'city' => $user->city,// $kycData['city'] ?? 'Lagos',
-                    'state' => $user->state,// $kycData['state'] ?? 'Lagos',
+                    'city' => $kycData['city'] ?? 'Lagos',
+                    'state' => $kycData['state'] ?? 'Lagos',
                     'country' => 'NG',
-                    'postal_code' => $user->zip_code,// $kycData['zip_code'] ?? '100001',
+                    'postal_code' => $kycData['zip_code'] ?? '100001',
                 ],
                 'background_information' => [
                     'employment_status' => 'employed',
@@ -95,7 +95,7 @@ class GraphService
             ];
 
             $response = $this->client()->post('/person', $payload);
-            \Log::info("Graph Create Person Response: " . $response->body());
+            // \Log::info("Graph Create Person Response: " . $response->body());
 
             if ($response->successful()) {
                 $responseData = $response->json();
@@ -205,6 +205,31 @@ class GraphService
     // ==================== DEPOSIT METHODS ====================
 
     /**
+     * Create Deposit Address for Crypto
+     */
+    public function createDepositAddress(User $user, $walletId, $currency = 'USDT', $network = 'ERC20')
+    {
+        try {
+            $payload = [
+                // 'virtual_account_id' => $walletId, // Removed as per sample curl which doesn't use it
+                'currency' => $currency,
+                'network' => $network,
+                'label' => "Deposit for " . ($user->username ?? $user->email),
+            ];
+
+            $response = $this->client()->post('/address', $payload);
+
+            if ($response->successful()) {
+                return $response->json();
+            }
+
+            throw new Exception("Failed to create deposit address: " . ($response->json()['message'] ?? $response->reason()));
+        } catch (Exception $e) {
+            throw $e;
+        }
+    }
+
+    /**
      * Get Deposit History
      */
     public function getDeposits($walletId, $page = 1, $limit = 20)
@@ -296,22 +321,83 @@ class GraphService
     /**
      * Create Payout Destination (Save Beneficiary)
      */
+    /**
+     * Create Payout Destination (Save Beneficiary)
+     */
     public function createPayoutDestination(User $user, array $data)
     {
         try {
-            $customer = GraphCustomer::where('user_id', $user->id)->first();
-            if (!$customer) {
-                throw new Exception("User is not a registered Graph customer.");
+            // Determine Graph API 'type' based on input
+            $inputType = $data['type'] ?? 'bank_account'; // bank_account, crypto_address
+            $currency = $data['currency'] ?? 'NGN';
+            
+            $graphType = 'nip'; // Default
+            if ($inputType == 'bank_account') {
+                if ($currency == 'NGN') {
+                    $graphType = 'nip';
+                } elseif ($currency == 'USD') {
+                    $graphType = 'wire';
+                }
+            } elseif ($inputType == 'crypto_address') {
+                $graphType = 'stablecoin';
             }
 
+            $details = $data['details'] ?? [];
+            
+            // Base Payload
             $payload = [
-                'person_id' => $customer->graph_id,
-                'type' => $data['type'] ?? 'bank_account', // bank_account, crypto_address
-                'currency' => $data['currency'] ?? 'NGN',
-                'details' => $data['details'], // bank_code, account_number, account_name OR crypto address
+                'type' => $graphType,
+                'label' => $data['label'] ?? ('Beneficiary for ' . $user->username),
+                'source_type' => 'wallet_account', // Default
             ];
 
-            $response = $this->client()->post('/payout_destination', $payload);
+            // Add fields based on type
+            if ($graphType == 'nip') {
+                $payload = array_merge($payload, [
+                    'account_number' => $details['account_number'] ?? null,
+                    'bank_code' => $details['bank_code'] ?? null,
+                    'beneficiary_name' => $details['account_name'] ?? 'Beneficiary',
+                    'currency' => 'NGN',
+                ]);
+            } elseif ($graphType == 'wire') {
+                $payload = array_merge($payload, [
+                    'account_number' => $details['account_number'] ?? null,
+                    'beneficiary_name' => $details['account_name'] ?? 'Beneficiary',
+                    'currency' => 'USD',
+                    'wire_type' => $details['wire_type'] ?? 'ach', // ach, fedwire, swift
+                    'routing_number' => $details['routing_number'] ?? null,
+                    'swift_code' => $details['swift_code'] ?? null,
+                    'bank_name' => $details['bank_name'] ?? null,
+                    'beneficiary_address' => $details['beneficiary_address'] ?? null, // Required object
+                    'bank_address' => $details['bank_address'] ?? null, // Required for swift
+                    'account_type' => $details['account_type'] ?? 'personal', // personal, business
+                ]);
+            } elseif ($graphType == 'stablecoin') {
+                 $payload = array_merge($payload, [
+                    'address_code' => $details['address_code'] ?? $details['address'] ?? null, // Wallet Address
+                    'address_network' => $details['network'] ?? 'ERC20',
+                    'currency' => $currency, // USDC, USDT
+                 ]);
+            }
+
+            // account_id (Requ. ired by API). 
+            // Ideally should be passed in $data['wallet_id']. 
+            // If not, try to find a user wallet or fail.
+            if (isset($data['wallet_id'])) {
+                $payload['account_id'] = $data['wallet_id'];
+            } else {
+                 // Try to fetch first user wallet
+                 $wallet = GraphWallet::where('user_id', $user->id)->first();
+                 if ($wallet) {
+                     $payload['account_id'] = $wallet->wallet_id;
+                 } else {
+                     throw new Exception("Wallet ID (account_id) is required to create a payout destination.");
+                 }
+            }
+
+            \Log::info("Graph Create Payout Destination Payload: ", $payload);
+
+            $response = $this->client()->post('/payout-destination', $payload);
 
             if ($response->successful()) {
                 return $response->json();
@@ -330,13 +416,20 @@ class GraphService
     {
         try {
             $payload = [
-                'account_id' => $walletId,
-                'destination_id' => $data['destination_id'],
+                'account_id' => $walletId, // Source
+                'payout_destination_id' => $data['destination_id'], // Beneficiary
                 'amount' => (int) ($data['amount'] * 100), // Convert to subunits
                 'currency' => $data['currency'] ?? 'NGN',
                 'reference' => $data['reference'] ?? null,
                 'narration' => $data['narration'] ?? 'Withdrawal',
             ];
+
+            if (!empty($data['type'])) {
+                $payload['type'] = $data['type'];
+            }
+
+
+            \Log::info("Graph Create Payout Payload: ", $payload);
 
             $response = $this->client()->post('/payout', $payload);
 

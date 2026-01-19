@@ -1,0 +1,359 @@
+{
+    "info": {
+        "_postman_id": "crypto-loans-api-2026",
+        "name": "Crypto Loans API",
+        "description": "API endpoints for Crypto Loans (Lending & Borrowing)",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://localhost:8000/api/v1/loans",
+            "type": "string"
+        },
+        {
+            "key": "token",
+            "value": "YOUR_AUTH_TOKEN_HERE",
+            "type": "string"
+        }
+    ],
+    "item": [
+        {
+            "name": "Lending",
+            "item": [
+                {
+                    "name": "Create Lending Offer",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"asset\": \"USDT\",\n  \"amount\": 1000,\n  \"duration_days\": 30\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/lend",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "lend"
+                            ]
+                        },
+                        "description": "Create a new lending offer to earn 5% monthly interest"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get My Lending Offers",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/my-lending-offers",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "my-lending-offers"
+                            ]
+                        },
+                        "description": "Get all lending offers created by the authenticated user"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Cancel Lending Offer",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/cancel-offer/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "cancel-offer",
+                                "1"
+                            ]
+                        },
+                        "description": "Cancel a pending lending offer (only works if status is 'pending')"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Borrowing",
+            "item": [
+                {
+                    "name": "Calculate Collateral",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"asset\": \"USDT\",\n  \"amount\": 1000,\n  \"collateral_asset\": \"BTC\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/calculate-collateral",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "calculate-collateral"
+                            ]
+                        },
+                        "description": "Calculate required collateral amount (125% of loan value)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Create Borrow Request",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"asset\": \"USDT\",\n  \"amount\": 1000,\n  \"duration_days\": 30,\n  \"collateral_asset\": \"BTC\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/borrow",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "borrow"
+                            ]
+                        },
+                        "description": "Create a borrow request with automatic collateral calculation and matching"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get My Borrow Requests",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/my-borrow-requests",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "my-borrow-requests"
+                            ]
+                        },
+                        "description": "Get all borrow requests created by the authenticated user"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "My Loans",
+            "item": [
+                {
+                    "name": "Get My Loans (As Borrower)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/my-loans/borrower",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "my-loans",
+                                "borrower"
+                            ]
+                        },
+                        "description": "Get all loans where you are the borrower"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get My Loans (As Lender)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/my-loans/lender",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "my-loans",
+                                "lender"
+                            ]
+                        },
+                        "description": "Get all loans where you are the lender"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Loan Details",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/details/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "details",
+                                "1"
+                            ]
+                        },
+                        "description": "Get detailed information about a specific loan"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Repay Loan",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/repay/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "repay",
+                                "1"
+                            ]
+                        },
+                        "description": "Repay an active loan (principal + interest)"
+                    },
+                    "response": []
+                }
+            ]
+        }
+    ]
+}

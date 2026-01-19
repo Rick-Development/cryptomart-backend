@@ -92,3 +92,24 @@ Route::post('webhook/busha', [\App\Http\Controllers\Api\BushaWebhookController::
 
 // Route::post('webhook/safehaven', [\App\Http\Controllers\Api\User\WebhookController::class, 'handleSafeHaven'])->name('webhook.safehaven');
 
+
+// Crypto Loans
+Route::middleware('auth:api')->prefix('v1/loans')->group(function () {
+    // Lending
+    Route::post('lend', [\App\Http\Controllers\Api\V1\User\LoanController::class, 'createLendingOffer']);
+    Route::get('my-lending-offers', [\App\Http\Controllers\Api\V1\User\LoanController::class, 'getMyLendingOffers']);
+    Route::post('cancel-offer/{offerId}', [\App\Http\Controllers\Api\V1\User\LoanController::class, 'cancelLendingOffer']);
+    
+    // Borrowing
+    Route::post('borrow', [\App\Http\Controllers\Api\V1\User\LoanController::class, 'createBorrowRequest']);
+    Route::get('my-borrow-requests', [\App\Http\Controllers\Api\V1\User\LoanController::class, 'getMyBorrowRequests']);
+    Route::post('calculate-collateral', [\App\Http\Controllers\Api\V1\User\LoanController::class, 'calculateCollateral']);
+    
+    // Active Loans
+    Route::get('my-loans/borrower', [\App\Http\Controllers\Api\V1\User\LoanController::class, 'getMyLoansAsBorrower']);
+    Route::get('my-loans/lender', [\App\Http\Controllers\Api\V1\User\LoanController::class, 'getMyLoansAsLender']);
+    Route::get('details/{loanId}', [\App\Http\Controllers\Api\V1\User\LoanController::class, 'getLoanDetails']);
+    
+    // Repayment
+    Route::post('repay/{loanId}', [\App\Http\Controllers\Api\V1\User\LoanController::class, 'repayLoan']);
+});

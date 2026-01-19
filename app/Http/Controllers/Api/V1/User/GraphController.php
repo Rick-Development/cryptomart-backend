@@ -32,6 +32,7 @@ class GraphController extends Controller
             'id_image' => 'required|file|mimes:jpeg,png,jpg,pdf',
             'bank_statement' => 'nullable|file|mimes:jpeg,png,jpg,pdf',
             'bvn' => 'nullable|string',
+            
         ]);
 
         if ($validator->fails()) {
@@ -278,6 +279,7 @@ class GraphController extends Controller
             'type' => 'required|in:bank_account,crypto_address',
             'currency' => 'required|string',
             'details' => 'required|array',
+            'type' => 'required|in:internal,wire,nip,stablecoin',
         ]);
 
         if ($validator->fails()) {
