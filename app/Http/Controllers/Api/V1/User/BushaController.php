@@ -95,7 +95,7 @@ class BushaController extends Controller
                 // $response = $this->quidaxService = 
                 
                 $response = $this->quidaxService->fetchPaymentAddressses(auth()->user()->quidax_id, strtolower($request->target_currency));
-                \Log::info($response);
+                //\Log::info($response);
                 $data = $response['data'];
                 $data = array_filter($data, function ($item) use ($request) {
                     return $item['network'] === strtolower($request->network);
@@ -178,7 +178,7 @@ class BushaController extends Controller
             // Call Busha API
             $bushaResponse = $this->bushaService->quote($payload);
 
-            \Log::info('Busha quote response', $bushaResponse);
+            //\Log::info('Busha quote response', $bushaResponse);
             
             // Check for errors
             if (isset($bushaResponse['error'])) {
@@ -191,10 +191,10 @@ class BushaController extends Controller
             return Response::successResponse($bushaResponse['message'], $bushaResponse['data']);
             
         } catch (Exception $e) {
-            \Log::error('Quote creation failed', [
-                'error' => $e->getMessage(),
-                'request' => $request->all()
-            ]);
+            //\Log::error('Quote creation failed', [
+            //     'error' => $e->getMessage(),
+            //     'request' => $request->all()
+            // ]);
             return Response::errorResponse($e->getMessage());
         }
     }

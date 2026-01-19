@@ -87,10 +87,10 @@ return $response;
     $url = $this->baseUrl . $endPoint;
 
     // Log the endpoint and request data for debugging (sanitize if needed)
-    \Log::info('API Request', [
-        'patchFields' => $patchFields,
-        'url' => $url
-    ]);
+    //\Log::info('API Request', [
+    //     'patchFields' => $patchFields,
+    //     'url' => $url
+    // ]);
 
     // Initialize cURL
     $curl = curl_init();
@@ -121,7 +121,7 @@ return $response;
     // Check for cURL errors
     if (curl_errno($curl)) {
         $errorMessage = curl_error($curl);
-        \Log::error('cURL Error', ['error' => $errorMessage]);
+        //\Log::error('cURL Error', ['error' => $errorMessage]);
         curl_close($curl);
         return null; // Return or handle error as needed
     }
@@ -130,7 +130,7 @@ return $response;
     curl_close($curl);
 
     // Log and return the response
-    \Log::info('API Response', ['response' => $response]);
+    //\Log::info('API Response', ['response' => $response]);
 
     return $response;
 }
@@ -193,18 +193,18 @@ return $response;
 
 
 // Log request and response for debugging
-\Log::info('API Request', [
-    'endpoint' => '/create',
-    'payload' => array(
-        "customer_id" => $request->input('customer_id'),
-        "currency" => $request->input('currency', 'USD'),
-        "brand" => $request->input('brand'),
-        "type" => $request->input('type', 'virtual'),
-        "amount" => $request->input('amount'),
-        "ref" => $ref
-    )
-]);
-\Log::info('API Response', ['response' => $response]);
+//\Log::info('API Request', [
+//     'endpoint' => '/create',
+//     'payload' => array(
+//         "customer_id" => $request->input('customer_id'),
+//         "currency" => $request->input('currency', 'USD'),
+//         "brand" => $request->input('brand'),
+//         "type" => $request->input('type', 'virtual'),
+//         "amount" => $request->input('amount'),
+//         "ref" => $ref
+//     )
+// ]);
+//\Log::info('API Response', ['response' => $response]);
 
 
 
@@ -238,7 +238,7 @@ $extractedDetails = [
 ];
 
 
-\Log::info('Extracted Details', ['extractedDetails' => $extractedDetails]);
+//\Log::info('Extracted Details', ['extractedDetails' => $extractedDetails]);
 
 $data = [
     // 'id' => '123',
@@ -286,7 +286,7 @@ return response()->json(['response' => $response]);
          $response = $this->makeGetRequest($url);
 
 
-\Log::info('API Response', ['response' => $response]);
+//\Log::info('API Response', ['response' => $response]);
 
 // return $response; 
 return response()->json(['response' => $response]);
@@ -309,7 +309,7 @@ return response()->json(['response' => $response]);
    public function getCardId(Request $request): JsonResponse
 {
     // Log the incoming request
-    \Log::info('API Request', ['request' => $request->all()]);
+    //\Log::info('API Request', ['request' => $request->all()]);
 
     // Query the database for the card ID
     // $card = DB::table('payscribe_virtual_card')
@@ -324,7 +324,7 @@ $cards = DB::table('payscribe_virtual_card')
 
 
     // Log the response
-    \Log::info('API Response', ['response' => $cards]);
+    //\Log::info('API Response', ['response' => $cards]);
 
     // Handle cases where the card is not found
     if (!$cards) {
@@ -348,7 +348,7 @@ public function getCardRates(Request $request){
     // ->where('customer_id', $request->customer_id)
     ->get(); // Use get() to fetch all records
 
-    \Log::info('API Response', ['$rates' => $rates]);
+    //\Log::info('API Response', ['$rates' => $rates]);
   return response()->json([
         'success' => true,
         'rates' => $rates
@@ -368,7 +368,7 @@ public function getCardRates(Request $request){
     public function getCurrencyPair($from, $to): JsonResponse
     {
         
-    \Log::info('API Response', ['Request ' => [$from,$to]]);
+    //\Log::info('API Response', ['Request ' => [$from,$to]]);
     
         // $url = "$this->currencyPairUrl/?from={$from}&to={$to}";
         //  $response = $this->makeGetRequest($url);
@@ -376,7 +376,7 @@ public function getCardRates(Request $request){
       $response = $this->makeCurrencyGet($from, $to);
 
 
-    \Log::info('API Response', ['response' => $response]);
+    //\Log::info('API Response', ['response' => $response]);
     
             return response()->json($response);
             
@@ -400,7 +400,7 @@ public function getCardRates(Request $request){
         //     'ref' => 'nullable|string',
         // ]);
         
-\Log::info('API Request', ['Request' => $request->all(), 'user'=>$user]);
+//\Log::info('API Request', ['Request' => $request->all(), 'user'=>$user]);
 
         $url = "/{$cardId}/topup";
          $response = $this->makePostRequest($url,$request->all());
@@ -414,7 +414,7 @@ public function getCardRates(Request $request){
         // $this->sendMailSms($user, 'VIRTUAL_CARD_APPLY', $params);
         // $this->userPushNotification($user, 'VIRTUAL_CARD_APPLY', $params, $action);
         // $this->userFirebasePushNotification($user, 'VIRTUAL_CARD_APPLY', $params);
-\Log::info('API Response', ['response' => $response, 'user'=>$user]);
+//\Log::info('API Response', ['response' => $response, 'user'=>$user]);
 
 
 $responseArray = json_decode($response, TRUE);
@@ -449,7 +449,7 @@ return response()->json(['response' => $response]);
     public function withdrawFromCard($cardId, Request $request): JsonResponse
     {
 
-// \Log::info('API Request', ['$request' => $request->all(). '    '. $cardId]);
+// //\Log::info('API Request', ['$request' => $request->all(). '    '. $cardId]);
         $user = User::where('username', $request['username'])->first();
         $url = "/{$cardId}/withdraw";
         
@@ -458,7 +458,7 @@ return response()->json(['response' => $response]);
          $response = $this->makePostRequest($url,$request->all());
 
 
-\Log::info('API Response', ['response' => $response]);
+//\Log::info('API Response', ['response' => $response]);
 
 
 $responseArray = json_decode($response, TRUE);
@@ -499,11 +499,11 @@ return response()->json(['response' => $response]);
 
         $url = "/{$cardId}/transactions?" . http_build_query($request->all());
 
-\Log::info('API Request', ['response' => $request->all()]);
+//\Log::info('API Request', ['response' => $request->all()]);
          $response = $this->makeGetRequest($url);
 
 
-\Log::info('API Response', ['response' => $response]);
+//\Log::info('API Response', ['response' => $response]);
 
 // return $response; 
 return response()->json(['response' => $response]);
@@ -522,13 +522,13 @@ public function statement($cardId, Request $request): JsonResponse
 // $request->
     try {
         // Log the request
-        \Log::info('API Request', ['request' => $request->all()]);
+        //\Log::info('API Request', ['request' => $request->all()]);
 
         // Fetch the API response
         $response = $this->makeGetRequest($url);
         
         // Log the API response
-        \Log::info('API Response', ['response' => $response]);
+        //\Log::info('API Response', ['response' => $response]);
 
         // Decode the JSON string from the API response
         $decodedResponse = json_decode($response, true);
@@ -553,7 +553,7 @@ public function statement($cardId, Request $request): JsonResponse
         }
     } catch (\Exception $e) {
         // Handle any exception during the API request
-        \Log::error('API Request Failed', ['error' => $e->getMessage()]);
+        //\Log::error('API Request Failed', ['error' => $e->getMessage()]);
         return response()->json([
                 'status' => false,
                 'description' => 'Failed to fetch transactions'], 500);
@@ -572,7 +572,7 @@ public function statement($cardId, Request $request): JsonResponse
         Mail::to($request->email)->send(new \App\Mail\CardStatementMail($pdfPath));
     } catch (\Exception $e) {
         // Handle any exception during the PDF generation or email sending
-        \Log::error('Failed to generate/send PDF', ['error' => $e->getMessage()]);
+        //\Log::error('Failed to generate/send PDF', ['error' => $e->getMessage()]);
         return response()->json([
                 'status' => false,
                 'description' => 'Failed to generate or send the card statement'], 500);
@@ -597,13 +597,13 @@ public function statement($cardId, Request $request): JsonResponse
     {
         $url = "/{$cardId}/freeze";
         
-\Log::info('API Request', ['Request' => $request->all(),'url'=>$url]);
+//\Log::info('API Request', ['Request' => $request->all(),'url'=>$url]);
 
 //  $url = "/{$cardId}/topup";
          $response = $this->makePatchRequest($url,$request->all());
 
 
-\Log::info('API Response', ['response' => $response]);
+//\Log::info('API Response', ['response' => $response]);
 
 // return $response; 
 return response()->json(['response' => $response]);
@@ -622,13 +622,13 @@ return response()->json(['response' => $response]);
     {
         $url = "/{$cardId}/unfreeze";
         
-\Log::info('API Request', ['Request' => $request->all(),'url'=>$url]);
+//\Log::info('API Request', ['Request' => $request->all(),'url'=>$url]);
 
 //  $url = "/{$cardId}/topup";
          $response = $this->makePatchRequest($url,$request->all());
 
 
-\Log::info('API Response', ['response' => $response]);
+//\Log::info('API Response', ['response' => $response]);
 
 // return $response; 
 return response()->json(['response' => $response]);
@@ -647,14 +647,14 @@ return response()->json(['response' => $response]);
     {
         $url = "/{$cardId}/terminate";
         
-\Log::info('API Request', ['Request' => $request->all(),'url'=>$url]);
+//\Log::info('API Request', ['Request' => $request->all(),'url'=>$url]);
 
 //  $url = "/{$cardId}/topup";
          $response = $this->makePostRequest($url,$request->all());
         //  {\"status\":true,\"description\":\"Card action - terminate successfully.\",\"message\":{\"details\":{\"trans_id\":\"36f400d0-478b-4096-a100-e92cb6840de7\",\"ref\":\"828d85f1-e57e-403f-a7da-46da092e80b2\",\"customer\":{\"id\":\"c69a8756-61b4-4817-b2d7-2c351659607a\"},\"card\":{\"id\":\"69cc5311-bbe8-46d0-a551-2c8964267d89\",\"first_six\":\"302996\",\"last_four\":\"1890\",\"prev_balance\":0,\"balance\":0},\"currency\":\"usd\",\"action\":\"terminate\",\"created_at\":\"2024-12-07 21:06:49\"}},\"status_code\":200}"} 
 $responseArray = json_decode($response, TRUE);
 
-\Log::info('API $responseArray', ['$responseArray' => $responseArray['message']['details']['customer']['id'] ]);
+//\Log::info('API $responseArray', ['$responseArray' => $responseArray['message']['details']['customer']['id'] ]);
 
 if ($responseArray['status'] == true) {
     // Query the nested structure to get the customer ID
@@ -667,12 +667,12 @@ if ($responseArray['status'] == true) {
             ->delete();
             // ->update(['card_id' => null]);
     } else {
-        \Log::error('Customer ID not found in API response', ['response' => $responseArray]);
+        //\Log::error('Customer ID not found in API response', ['response' => $responseArray]);
     }
 }
 
 
-\Log::info('API Response', ['response' => $response]);
+//\Log::info('API Response', ['response' => $response]);
 
 // return $response; 
 return response()->json(['response' => $response]);

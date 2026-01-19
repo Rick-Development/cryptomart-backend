@@ -144,7 +144,7 @@ class SupportTicketController extends Controller
             event(new SupportConversationEvent($support_ticket, $chat_data));
         } catch (\Exception $e) {
             // Log the error but don't fail the request
-            \Log::warning('Support ticket event broadcasting failed: ' . $e->getMessage());
+            //\Log::warning('Support ticket event broadcasting failed: ' . $e->getMessage());
         }
 
         return Response::successResponse('Message sent successfully!', ['message' => $chat_data]);

@@ -361,6 +361,6 @@ class LoanService
     {
         // TODO: Integrate with Quidax internal transfer API
         // This should be an internal transfer within Quidax custody
-        \Log::info("Quidax Transfer: {$amount} {$asset} from User {$from->id} to User {$to->id}");
+        //\Log::info("Quidax Transfer: {$amount} {$asset} from User {$from->id} to User {$to->id}");
     }
 }

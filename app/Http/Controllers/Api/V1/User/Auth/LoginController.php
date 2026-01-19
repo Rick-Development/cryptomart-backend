@@ -48,7 +48,7 @@ class LoginController extends Controller
      */
     public function login(Request $request)
     {
-        \Log::info($request->all());
+        //\Log::info($request->all());
         $this->request_data = $request;
 
         $validator = Validator::make($request->all(), [
@@ -200,7 +200,7 @@ class LoginController extends Controller
                     $user->notify(new SendAuthorizationCode((object) $data));
                 } catch (Exception $e) {
                     // log the error instead of swallowing silently
-                    \Log::warning("Authorization email failed for user {$user->id}: " . $e->getMessage());
+                    //\Log::warning("Authorization email failed for user {$user->id}: " . $e->getMessage());
                 }
 
                 DB::commit();

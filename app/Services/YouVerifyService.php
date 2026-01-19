@@ -75,19 +75,19 @@ class YouVerifyService
             $response = $this->client()->post('api/identity/ng/bvn', $payload);
             
             if ($response->failed()) {
-                \Illuminate\Support\Facades\Log::error("YouVerify BVN Failed", [
-                    'status' => $response->status(),
-                    'body' => $response->body(),
-                    'payload' => $payload
-                ]);
+                // \Illuminate\Support\Facades//\Log::error("YouVerify BVN Failed", [
+                //     'status' => $response->status(),
+                //     'body' => $response->body(),
+                //     'payload' => $payload
+                // ]);
             }
 
             $res = $response->json();
-            \Illuminate\Support\Facades\Log::info("YouVerify BVN Response", [
-                'status' => $response->status(),
-                'body' => $response->body(),
-                'json' => $res
-            ]);
+            // \Illuminate\Support\Facades//\Log::info("YouVerify BVN Response", [
+            //     'status' => $response->status(),
+            //     'body' => $response->body(),
+            //     'json' => $res
+            // ]);
 
             if ($response->status() === 404) {
                 return ['status' => 'error', 'message' => 'BVN Verification endpoint not found (404). Please check API version/base URL.'];

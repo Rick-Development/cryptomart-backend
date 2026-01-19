@@ -46,7 +46,7 @@ class GraphService
             $documents = [
                 [
                     'type' => $idType,
-                    'url' => 'https://rickdevelopment.com/logo.png',//$kycData['id_image_url'] ?? '',
+                    'url' => $kycData['id_image_url'] ?? '',
                     'issue_date' => '2020-01-01', // Default or fetch if available
                     'expiry_date' => '2030-01-01', // Default or fetch if available
                     'id_number' => $kycData['id_number']
@@ -57,7 +57,7 @@ class GraphService
             if (!empty($kycData['bank_statement_url'])) {
                 $documents[] = [
                     'type' => 'bank_statement',
-                    'url' => 'https://rickdevelopment.com/logo.png',// $kycData['bank_statement_url'],
+                    'url' => $kycData['bank_statement_url'],
                     'issue_date' => '2020-01-01', // Default
                     'expiry_date' => '2030-01-01', // Default
                 ];
@@ -72,7 +72,7 @@ class GraphService
                 'name_other' => '',
                 'email' => $user->email,
                 'phone' => $user->full_mobile ?? $user->mobile,
-                'dob' => $user->dob,
+                'dob' => $kycData['dob'],
                 'id_number' => $kycData['id_number'],
                 'id_country' => 'NG',
                 'bank_id_number' => $kycData['bvn'] ?? null, // BVN
@@ -85,28 +85,32 @@ class GraphService
                     'postal_code' => $kycData['zip_code'] ?? '100001',
                 ],
                 'background_information' => [
-                    'employment_status' => 'employed',
-                    'occupation' => 'Trader',
-                    'primary_purpose' => 'personal',
-                    'source_of_funds' => 'business',
-                    'expected_monthly_inflow' => 100000
+                    'employment_status' => $kycData['background_information']['employment_status'] ?? 'employed',
+                    'occupation' => $kycData['background_information']['occupation'] ?? 'Trader',
+                    'primary_purpose' => $kycData['background_information']['primary_purpose'] ?? 'personal',
+                    'source_of_funds' => $kycData['background_information']['source_of_funds'] ?? 'business',
+                    'expected_monthly_inflow' => (int) ($kycData['background_information']['expected_monthly_inflow'] ?? 100000)
                 ],
                 'documents' => $documents
             ];
 
+            \Log::info('Graph Create Person Payload:', $payload);
+            
             $response = $this->client()->post('/person', $payload);
-            // \Log::info("Graph Create Person Response: " . $response->body());
+            \Log::info("Graph Create Person Response: " . $response->body());
 
             if ($response->successful()) {
                 $responseData = $response->json();
                 $personData = $responseData['data'];
                 
-                return GraphCustomer::create([
-                    'user_id' => $user->id,
-                    'graph_id' => $personData['id'],
-                    'kyc_status' => $personData['kyc_status'] ?? 'pending',
-                    'data' => $personData,
-                ]);
+                return GraphCustomer::updateOrCreate(
+                    ['user_id' => $user->id],
+                    [
+                        'graph_id' => $personData['id'],
+                        'kyc_status' => $personData['kyc_status'] ?? 'pending',
+                        'data' => $personData,
+                    ]
+                );
             }
 
             Log::error("Graph Create Person Failed: " . $response->body());
@@ -395,7 +399,7 @@ class GraphService
                  }
             }
 
-            \Log::info("Graph Create Payout Destination Payload: ", $payload);
+            //\Log::info("Graph Create Payout Destination Payload: ", $payload);
 
             $response = $this->client()->post('/payout-destination', $payload);
 
@@ -429,7 +433,7 @@ class GraphService
             }
 
 
-            \Log::info("Graph Create Payout Payload: ", $payload);
+            //\Log::info("Graph Create Payout Payload: ", $payload);
 
             $response = $this->client()->post('/payout', $payload);
 
@@ -497,7 +501,7 @@ class GraphService
             
             return null;
         } catch (Exception $e) {
-            \Log::error("Failed to update wallet balance: " . $e->getMessage());
+            //\Log::error("Failed to update wallet balance: " . $e->getMessage());
             return null;
         }
     }

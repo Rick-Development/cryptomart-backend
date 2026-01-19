@@ -211,7 +211,7 @@ class QuidaxController extends Controller
             ]);
         }
 
-        // \Log::info($data);
+        // //\Log::info($data);
         $response = $this->quidax->create_withdrawal(auth()->user()->quidax_id, $data);
 
         if ($response && $response['status'] == "success") {

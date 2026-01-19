@@ -115,7 +115,7 @@ class P2POrderController extends Controller
             event(new \App\Events\P2POrderStatusUpdated($order));
         } catch (\Exception $e) {
             // Log error but continue (Pusher might be down or not configured)
-            \Log::error("Pusher Broadcast Error: " . $e->getMessage());
+            //\Log::error("Pusher Broadcast Error: " . $e->getMessage());
         }
 
         return Response::successResponse('Payment marked as sent. Waiting for seller confirmation.', ['order' => $order]);
@@ -170,7 +170,7 @@ class P2POrderController extends Controller
             try {
                 event(new \App\Events\P2POrderStatusUpdated($order));
             } catch (\Exception $e) {
-                \Log::error("Pusher Broadcast Error: " . $e->getMessage());
+                //\Log::error("Pusher Broadcast Error: " . $e->getMessage());
             }
 
             return Response::successResponse('Crypto released successfully', ['order' => $order]);
@@ -210,7 +210,7 @@ class P2POrderController extends Controller
         try {
             event(new \App\Events\P2POrderStatusUpdated($order));
         } catch (\Exception $e) {
-            \Log::error("Pusher Broadcast Error: " . $e->getMessage());
+            //\Log::error("Pusher Broadcast Error: " . $e->getMessage());
         }
 
         return Response::successResponse('Dispute raised successfully. Admin will review.', ['order' => $order]);
@@ -267,7 +267,7 @@ class P2POrderController extends Controller
         try {
             event(new \App\Events\P2PMessageSent($message));
         } catch (\Exception $e) {
-            \Log::error("Pusher Broadcast Error: " . $e->getMessage());
+            //\Log::error("Pusher Broadcast Error: " . $e->getMessage());
         }
 
         return Response::successResponse('Message sent', ['message' => $message], 201);

@@ -136,7 +136,7 @@ class P2PDisputeController extends Controller
             try {
                 event(new \App\Events\P2POrderStatusUpdated($order));
             } catch (\Exception $e) {
-                \Log::error("Pusher Broadcast Error: " . $e->getMessage());
+                //\Log::error("Pusher Broadcast Error: " . $e->getMessage());
             }
 
             return redirect()->route('admin.p2p.disputes.index')->with(['success' => ['Dispute resolved successfully']]);

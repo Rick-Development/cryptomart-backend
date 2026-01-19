@@ -28,11 +28,16 @@ class GraphController extends Controller
             'state' => 'required|string',
             'zip_code' => 'required|string',
             'id_number' => 'required|string',
-            'id_type' => 'required|string', // NIN, BVN, PASSPORT
+            'id_type' => 'required|string|in:passport,drivers_license,national_id,voters_card',
             'id_image' => 'required|file|mimes:jpeg,png,jpg,pdf',
-            'bank_statement' => 'nullable|file|mimes:jpeg,png,jpg,pdf',
-            'bvn' => 'nullable|string',
-            
+            'bank_statement' => 'required|file|mimes:jpeg,png,jpg,pdf',
+            'bvn' => 'required|string',
+            'background_information' => 'required|array',
+            'background_information.employment_status' => 'required|string|in:employed,self_employed,unemployed,student,retired',
+            'background_information.occupation' => 'required|string',
+            'background_information.primary_purpose' => 'required|string|in:business,personal,salary,freelance',
+            'background_information.source_of_funds' => 'required|string|in:salary,savings,business,freelance,investment,government_benefits,pension',
+            'background_information.expected_monthly_inflow' => 'required|numeric',
         ]);
 
         if ($validator->fails()) {
@@ -106,7 +111,7 @@ class GraphController extends Controller
             return Response::successResponse('Wallet created successfully', ['wallet' => $wallet]);
 
         } catch (\Exception $e) {
-            \Log::info($e->getMessage());
+            //\Log::info($e->getMessage());
             // Check if user needs to be created first
             if (str_contains($e->getMessage(), 'not a registered Graph customer')) {
                  return Response::errorResponse('Please create a Graph profile/customer first.');

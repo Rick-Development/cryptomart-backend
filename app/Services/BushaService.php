@@ -29,7 +29,7 @@ class BushaService
          $response = $this->client()->post("{$this->baseUrl}/v1/quotes", $payload);
 
         if ($response->failed()) {
-            // \Illuminate\Support\Facades\Log::error('Busha Quote Failed', [
+            // \Illuminate\Support\Facades//\Log::error('Busha Quote Failed', [
             //     'status' => $response->status(),
             //     'body' => $response->body(),
             //     'payload' => $payload
@@ -48,7 +48,7 @@ class BushaService
     {
         $response = $this->client()->get("{$this->baseUrl}/v1/quotes/{$quoteId}");
 
-        \Log::info('Busha quote details', $response->json());
+        //\Log::info('Busha quote details', $response->json());
         if ($response->failed()) {
             throw new Exception($response->json('message') ?? 'Failed to fetch quote details.');
         }
@@ -80,13 +80,13 @@ class BushaService
 
         $response = $this->client()->post("{$this->baseUrl}/v1/quotes", $payload);
 
-        \Log::info('Busha quote response', $response->json());
+        //\Log::info('Busha quote response', $response->json());
         if ($response->failed()) {
-            \Illuminate\Support\Facades\Log::error('Busha Quote Failed', [
-                'status' => $response->status(),
-                'body' => $response->body(),
-                'payload' => $payload
-            ]);
+            // \Illuminate\Support\Facades//\Log::error('Busha Quote Failed', [
+            //     'status' => $response->status(),
+            //     'body' => $response->body(),
+            //     'payload' => $payload
+            // ]);
             throw new Exception($response->json('message') ?? 'Failed to create quote. Check logs.');
         }
 
@@ -105,7 +105,7 @@ class BushaService
             'reference' => $reference // Optional but good for tracking
         ]);
 
-        \Log::info('Busha transfer response', $response->json());
+        //\Log::info('Busha transfer response', $response->json());
         if ($response->failed()) {
             throw new Exception($response->json('message') ?? 'Failed to execute transfer');
         }
@@ -120,11 +120,11 @@ class BushaService
         $response = $this->client()->get("{$this->baseUrl}/v1/transfers/{$transferId}");
         
         if ($response->failed()) {
-            \Illuminate\Support\Facades\Log::error('Busha Fetch Transfer Failed', [
-                'id' => $transferId,
-                'status' => $response->status(),
-                'body' => $response->body()
-            ]);
+            // \Illuminate\Support\Facades//\Log::error('Busha Fetch Transfer Failed', [
+            //     'id' => $transferId,
+            //     'status' => $response->status(),
+            //     'body' => $response->body()
+            // ]);
             throw new Exception($response->json('message') ?? 'Failed to fetch transfers');
         }
 
@@ -168,7 +168,7 @@ class BushaService
                             ];
         $response = $this->client()->post("{$this->baseUrl}/v1/recipients", $data );
 
-        \Log::info('Busha create recipient response', $response->json());
+        //\Log::info('Busha create recipient response', $response->json());
         if ($response->failed()) {
             return false;
             // throw new Exception($response->json('message') ?? 'Failed to create recipient');
@@ -223,7 +223,7 @@ class BushaService
 
         $response = $this->client()->post("{$this->baseUrl}/v1/recipients", $data);
 
-        \Log::info('Busha create payout recipient response', $response->json());
+        //\Log::info('Busha create payout recipient response', $response->json());
         
         if ($response->failed()) {
             throw new Exception($response->json()['error']['message'] ?? 'Failed to create recipient on Busha');
@@ -237,7 +237,7 @@ class BushaService
     public function getCurrencies()
     {
         $response = $this->client()->get("{$this->baseUrl}/v1/currencies?sort=asc&ramp=true");
-        // \Log::info('Busha currencies response', $response->json());
+        // //\Log::info('Busha currencies response', $response->json());
 
         if ($response->failed()) {
             throw new Exception($response->json('message') ?? 'Failed to fetch currencies');
@@ -250,7 +250,7 @@ class BushaService
     public function getNetworks($currency)
     {
         $response = $this->client()->get("{$this->baseUrl}/v1/currencies/{$currency}");
-        // \Log::info('Busha currencies response', $response->json());
+        // //\Log::info('Busha currencies response', $response->json());
 
         if ($response->failed()) {
             throw new Exception($response->json('message') ?? 'Failed to fetch currencies');

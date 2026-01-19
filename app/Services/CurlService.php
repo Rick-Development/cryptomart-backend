@@ -39,7 +39,7 @@ class CurlService
     protected function request($method, $endpoint, $data = [])
     {
         $curl = curl_init();
-        \Log::info("{$this->baseUrl}/{$endpoint}");
+        //\Log::info("{$this->baseUrl}/{$endpoint}");
         $options = [
             CURLOPT_URL => (str_contains($endpoint, 'ramp')
                 ? $this->rampUrl
@@ -65,7 +65,7 @@ class CurlService
 
         curl_close($curl);
 
-        \Log::info($response);
+        //\Log::info($response);
         if ($err) {
             return ["error" => $err];
         }

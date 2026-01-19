@@ -166,9 +166,9 @@ class InternalTransferController extends Controller
                         "paymentReference" => $reference
                     ];
 
-                    \Log::info("Calling SafeHaven Transfer", ['payload' => $payload]);
+                    //\Log::info("Calling SafeHaven Transfer", ['payload' => $payload]);
                     $transferRes = $this->safeHavenService->transfer($payload);
-                    \Log::info("SafeHaven Transfer Result", ['result' => $transferRes]);
+                    //\Log::info("SafeHaven Transfer Result", ['result' => $transferRes]);
                     
                     $safeHavenDone = true;
                     // Note: We do NOT manually credit the receiver wallet here because SafeHaven will likely send a webhook 
@@ -238,7 +238,7 @@ class InternalTransferController extends Controller
             DB::commit();
 
         } catch (Exception $e) {
-            \Log::error("Transfer Error: " . $e->getMessage() . "\nStack: " . $e->getTraceAsString());
+            //\Log::error("Transfer Error: " . $e->getMessage() . "\nStack: " . $e->getTraceAsString());
             DB::rollBack();
             return Response::errorResponse("Transaction failed! " . $e->getMessage(), [], 400);
         }
