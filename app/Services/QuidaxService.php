@@ -173,4 +173,9 @@ class QuidaxService
         return $this->curl->post("v1/users/transfer", $data);
     }
 
+    public function getWithdrawalFee($currency, $network)
+    {
+        return $this->curl->get("v1/fee?currency={$currency}&network={$network}");
+    }
+
 }

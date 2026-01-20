@@ -67,7 +67,7 @@ class KycController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'bvn' => 'required|string|size:11',
-            'selfie' => 'required|image|mimes:jpeg,png,jpg|max:5120', // Accept image file
+            'selfie' => 'required|image|mimes:jpeg,png,jpg', // Accept image file
         ]);
 
         if ($validator->fails()) {

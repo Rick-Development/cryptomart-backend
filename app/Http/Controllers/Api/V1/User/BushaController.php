@@ -62,6 +62,8 @@ class BushaController extends Controller
         try {
             $user = auth()->user();
             $reference = 'QUO_' . Str::random(10);
+            $feeAmount = 0;
+            $feeType = '';
             
             // Determine if source or target is crypto
             $cryptoCurrencies = ['BTC', 'ETH', 'USDT', 'USDC', 'LTC', 'DOGE', 'XRP', 'BNB'];
@@ -124,6 +126,17 @@ class BushaController extends Controller
             } else {
                 $network = $request->network == 'BEP20' ? 'BSC' : ($request->network == 'TRC20' ? 'TRX' : ($request->network == 'ERC20' ? 'Ethereum' : $request->network));
 
+
+            $feeResponse = $this->quidaxService->getWithdrawalFee(strtolower($sourceCurrency), strtolower($request->network));
+            $feeAmount = $feeResponse['data']['fee'];
+            $feeType = $feeResponse['data']['type'];
+            if($feeType != 'flat'){
+                $feeAmount = $request->amount * ($feeAmount / 100);
+                $feeAmount = $feeAmount * 2;
+            }else{
+                $feeAmount = $feeAmount * 2;
+            }
+             $feeAmount;
                 // SELL: User spends CRYPTO to get FIAT (or another crypto)
                 // Pay In: Source currency (crypto user sells)
                 // Pay Out: Target currency (fiat/crypto user receives)
@@ -188,7 +201,11 @@ class BushaController extends Controller
                 );
             }
             
-            return Response::successResponse($bushaResponse['message'], $bushaResponse['data']);
+            $data = $bushaResponse['data'];
+            $data['fee_amount'] = $feeAmount;
+            $data['fee_type'] = $feeType;
+
+            return Response::successResponse($bushaResponse['message'], $data);
             
         } catch (Exception $e) {
             //\Log::error('Quote creation failed', [
@@ -231,6 +248,8 @@ class BushaController extends Controller
             $targetCurrency = $quoteDetails['target_currency'];
             $sourceAmount = $quoteDetails['source_amount'];
             $targetAmount = $quoteDetails['target_amount'];
+            $totalAmount = 0.00;
+            $feeAmount = 0.00;
             
             // 1. Debit Logic
             // If Side is BUY (User buys crypto with Fiat/Crypto):
@@ -244,12 +263,25 @@ class BushaController extends Controller
 
 
             if ($side == 'sell') {
-                $response = $this->quidaxService->fetchUserWallet($user->quidax_id, strtolower($sourceCurrency));
+                $pay_in = $quoteDetails['pay_in'];
+                $returnedNewtork = $pay_in['network'];
+                $network = $returnedNewtork == 'BSC' ? 'BEP20' : ($returnedNewtork == 'TRX' ? 'TRC20' : ($returnedNewtork == 'Ethereum' ? 'ERC20' : $returnedNewtork));
+                $response = $this->quidaxService->fetchUserWallet($user->quidax_id, strtolower($sourceCurrency)); 
+                $feeResponse = $this->quidaxService->getWithdrawalFee(strtolower($sourceCurrency), strtolower($network));
+                $feeAmount = $feeResponse['data']['fee'];
+                $feeType = $feeResponse['data']['type'];
+                if($feeType != 'flat'){
+                    $feeAmount = $sourceAmount * ($feeAmount / 100);
+                    $feeAmount = $feeAmount * 2;
+                }else{
+                    $feeAmount = $feeAmount * 2;
+                }
+                $totalAmount = $sourceAmount + $feeAmount;
                 if($response['status'] == 'success'){
                 $data = $response['data'];
                 $balance = $data['balance'];
-                if($balance < $sourceAmount){
-                    throw new Exception("Insufficient $sourceCurrency balance. Required: $sourceAmount but available: $balance");
+                if($balance < $totalAmount){
+                    throw new Exception("Insufficient balance. Required: $totalAmount $sourceCurrency (including $feeAmount $sourceCurrency fee) but available: $balance $sourceCurrency");
                 }
                 }else{
                     return Response::errorResponse($response['message']);
@@ -269,6 +301,7 @@ class BushaController extends Controller
             // 2. Execute Transfer on Busha
             $transfer = $this->bushaService->executeQuote($request->quote_id, $reference);
             $pay_in = $transfer['data']['pay_in'];
+                $returnedNewtork = $pay_in['network'];
             if($side == 'sell'){
 
             $mainAccountId = $this->quidaxService->getUser()['data']['id'];
@@ -299,7 +332,7 @@ class BushaController extends Controller
                 $mainAccountData = [
                     'currency' => strtolower($sourceCurrency),
                     'network' => strtolower($network),
-                    'amount' => $sourceAmount,
+                    'amount' => $totalAmount,
                     'fund_uid' => $mainAccountId,
                     'transaction_note' => 'Trading of '.$targetCurrency.' to '.$sourceCurrency,
                     'narration' => 'Trading of '.$targetCurrency.' to '.$sourceCurrency,
@@ -316,11 +349,33 @@ class BushaController extends Controller
                  if($response['status'] == 'success'){
                     // return Response::successResponse($response['data']);
                  }else{
-                    $reverseMainAccountResponse = $this->quidaxService->cancel_withdrawal($mainAccountResponse['data']['id'],auth()->user()->quidax_id);
-                    \Log::info($reverseMainAccountResponse);
+                    $data = [
+                        'currency' => strtolower($sourceCurrency),
+                        'network' => strtolower($network),
+                        'amount' => $totalAmount,
+                        'fund_uid' => auth()->user()->quidax_id,
+                        'transaction_note' => 'Trading of '.$targetCurrency.' to '.$sourceCurrency,
+                        'narration' => 'Trading of '.$targetCurrency.' to '.$sourceCurrency,
+                    ];
+                    // REVERSE MAIN ACCOUNT
+                    $reverseMainAccountResponse = $this->quidaxService->create_withdrawal('me', $data);
+                    \Log::info($reverseMainAccountResponse); 
+                     DB::rollBack();   
                     return Response::errorResponse($response['message']);
                  }
                 }else{
+                    $data = [
+                        'currency' => strtolower($sourceCurrency),
+                        'network' => strtolower($network),
+                        'amount' => $totalAmount,
+                        'fund_uid' => auth()->user()->quidax_id,
+                        'transaction_note' => 'Trading of '.$targetCurrency.' to '.$sourceCurrency,
+                        'narration' => 'Trading of '.$targetCurrency.' to '.$sourceCurrency,
+                    ];
+                    // REVERSE MAIN ACCOUNT
+                    $reverseMainAccountResponse = $this->quidaxService->create_withdrawal('me', $data);
+                    \Log::info($reverseMainAccountResponse); 
+                     DB::rollBack();   
                     return Response::errorResponse($mainAccountResponse['message']);
                 }
                 
