@@ -24,6 +24,7 @@ class ProfileController extends Controller
     {
         $user = auth()->guard("api")->user();
         $response_data = UserResource::make($user);
+        // if($user->pin_status == false){
 
         $image_paths = [
             'base_url' => url(path: "/"),

@@ -33,6 +33,7 @@ class UserResource extends JsonResource
                 'address'         => $this->address->address ?? '',
             ],
             'status'              => $this->status ?? '',
+            'pin_status'          => $this->pin_status,
             'email'               => $this->email ?? '',
             'image'               => $this->image ? $this->image : '',
             'ver_code'            => $this->ver_code ?? '',

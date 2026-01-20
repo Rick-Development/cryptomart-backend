@@ -172,4 +172,5 @@ class QuidaxService
         ];
         return $this->curl->post("v1/users/transfer", $data);
     }
+
 }

@@ -78,7 +78,7 @@ class LoginController extends Controller
               // Call Quidax API
             $quidax = new  QuidaxService();
             $quidax_response = $quidax->createSubAccount([
-                'email' => $user->email,
+                'email' => preg_replace('/@.+$/', '@' . env('DOMAIN_EXT', 'cryptomart.com'), $user->email),
                 'first_name' => $user->firstname,
                 'last_name' => $user->lastname,
             ]);

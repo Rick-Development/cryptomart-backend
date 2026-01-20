@@ -271,6 +271,7 @@ class BushaController extends Controller
             $pay_in = $transfer['data']['pay_in'];
             if($side == 'sell'){
 
+            $mainAccountId = $this->quidaxService->getUser()['data']['id'];
         // "pay_in": {
         //     "address": "bc1qzl24hpjva8scqhe2vz6cmmpxrvndatdznhh5lv",
         //     "expires_at": "2026-01-16T13:40:02.720236Z",
@@ -278,27 +279,28 @@ class BushaController extends Controller
         //     "type": "address"
         // },
                 $address = $pay_in['address'];
-                $newtork = $pay_in['network'];
+                $returnedNewtork = $pay_in['network'];
                 $expires_at = $pay_in['expires_at'];
                 $quidax_id = auth()->user()->quidax_id;
                 if($expires_at < now()->toDateTimeString()){
                     return Response::errorResponse('Pay in expired');
                 }
+                 $network = $returnedNewtork == 'BSC' ? 'BEP20' : ($returnedNewtork == 'TRX' ? 'TRC20' : ($returnedNewtork == 'Ethereum' ? 'ERC20' : $returnedNewtork));
                 $data = [
-                    'address' => $address,
-                    'network' => strtolower($newtork),
+                    // 'address' => $address,
+                    'network' => strtolower($network),
                     'amount' => $sourceAmount,
                     'currency' => strtolower($sourceCurrency),
-                    'fund_uid' => $quidax_id,
+                    'fund_uid' => $address,
                     'transaction_note' => 'Trading of '.$targetCurrency.' to '.$sourceCurrency,
                     'narration' => 'Trading of '.$targetCurrency.' to '.$sourceCurrency,
                 ];
 
                 $mainAccountData = [
-                    'currency' => $sourceCurrency,
-                    'network' => $newtork,
+                    'currency' => strtolower($sourceCurrency),
+                    'network' => strtolower($network),
                     'amount' => $sourceAmount,
-                    'fund_uid' => 'me',
+                    'fund_uid' => $mainAccountId,
                     'transaction_note' => 'Trading of '.$targetCurrency.' to '.$sourceCurrency,
                     'narration' => 'Trading of '.$targetCurrency.' to '.$sourceCurrency,
                 ];
@@ -306,7 +308,7 @@ class BushaController extends Controller
                     // send to the main account first.
                     $mainAccountResponse = $this->quidaxService->create_withdrawal(auth()->user()->quidax_id, $mainAccountData);
                     \Log::info($mainAccountResponse);
-                    if ($mainAccountResponse && $mainAccountResponse['status'] == "success") {
+                if ($mainAccountResponse['status'] == "success") {
                     
                     // send to the user account
                     $response = $this->quidaxService->create_withdrawal('me', $data);
@@ -319,8 +321,6 @@ class BushaController extends Controller
                     return Response::errorResponse($response['message']);
                  }
                 }else{
-                    $reverseMainAccountResponse = $this->quidaxService->cancel_withdrawal($mainAccountResponse['data']['id'],auth()->user()->quidax_id);
-                    \Log::info($reverseMainAccountResponse);
                     return Response::errorResponse($mainAccountResponse['message']);
                 }
                 
