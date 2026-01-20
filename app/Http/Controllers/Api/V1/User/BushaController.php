@@ -511,8 +511,11 @@ class BushaController extends Controller
      * Get Saved Bank Accounts
      */
     public function getBankAccounts() {
-        $accounts = BushaPaymentDetail::where('user_id', auth()->id())->get();
-        return Response::successResponse('Bank accounts fetched', ['accounts' => $accounts]);
+        $accounts = BushaPaymentDetail::where('user_id', auth()->id())->first();
+        if(!$accounts){
+            return Response::errorResponse('Bank account not found');
+        }
+        return Response::successResponse('Bank accounts fetched', $accounts);
     }
 
     /**

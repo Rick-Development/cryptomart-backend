@@ -48,6 +48,7 @@ Route::prefix("user")->name("api.user.")->group(function () {
              Route::get('transfer/{quoteId}', 'getTransfer');
              Route::get('banks', 'banks');
              Route::post('bank-accounts', 'addBankAccount');
+            //  Route::get('bank-accounts', 'getBankAccount');
              Route::get('bank-accounts', 'getBankAccounts');
              Route::delete('bank-accounts/{id}', 'deleteBankAccount');
              Route::get('currencies', 'getCurrencies');
