@@ -293,13 +293,39 @@ class BushaController extends Controller
                     'transaction_note' => 'Trading of '.$targetCurrency.' to '.$sourceCurrency,
                     'narration' => 'Trading of '.$targetCurrency.' to '.$sourceCurrency,
                 ];
-                
-                 $response = $this->quidaxService->create_withdrawal($quidax_id, $data);
-                 if($response['status'] == 'success'){
+
+                $mainAccountData = [
+                    'currency' => $sourceCurrency,
+                    'network' => $newtork,
+                    'amount' => $sourceAmount,
+                    'fund_uid' => 'me',
+                    'transaction_note' => 'Trading of '.$targetCurrency.' to '.$sourceCurrency,
+                    'narration' => 'Trading of '.$targetCurrency.' to '.$sourceCurrency,
+                ];
+
+                    // send to the main account first.
+                    $mainAccountResponse = $this->quidaxService->create_withdrawal(auth()->user()->quidax_id, $mainAccountData);
+                    \Log::info($mainAccountResponse);
+                    if ($mainAccountResponse && $mainAccountResponse['status'] == "success") {
                     
+                    // send to the user account
+                    $response = $this->quidaxService->create_withdrawal('me', $data);
+                
+                 if($response['status'] == 'success'){
+                    // return Response::successResponse($response['data']);
                  }else{
+                    $reverseMainAccountResponse = $this->quidaxService->cancel_withdrawal($mainAccountResponse['data']['id'],auth()->user()->quidax_id);
+                    \Log::info($reverseMainAccountResponse);
                     return Response::errorResponse($response['message']);
                  }
+                }else{
+                    $reverseMainAccountResponse = $this->quidaxService->cancel_withdrawal($mainAccountResponse['data']['id'],auth()->user()->quidax_id);
+                    \Log::info($reverseMainAccountResponse);
+                    return Response::errorResponse($mainAccountResponse['message']);
+                }
+                
+
+
             }else{
 //  "pay_in": {
 //             "expires_at": "2026-01-15T23:48:05.22033144Z",

@@ -179,6 +179,8 @@ class QuidaxController extends Controller
             'narration' => 'required|string',
         ]);
 
+
+
         if ($validator->fails()) {
             return response()->json([
                 'status' => 'failed',
@@ -211,8 +213,24 @@ class QuidaxController extends Controller
             ]);
         }
 
+        //main account data
+
+        $mainAccountData = [
+            'currency' => $request->currency,
+            'network' => $request->network,
+            'amount' => $request->amount,
+            'fund_uid' => 'me',
+            'transaction_note' => $request->transaction_note,
+            'narration' => $request->narration,
+        ];
+
+        // Withdraw to the main account first.
+        $mainAccountResponse = $this->quidax->create_withdrawal(auth()->user()->quidax_id, $mainAccountData);
+        \Log::info($mainAccountResponse);
+        if ($mainAccountResponse && $mainAccountResponse['status'] == "success") {
+          
         // //\Log::info($data);
-        $response = $this->quidax->create_withdrawal(auth()->user()->quidax_id, $data);
+        $response = $this->quidax->create_withdrawal('me', $data);
 
         if ($response && $response['status'] == "success") {
             Withdrawals::create([
@@ -229,8 +247,14 @@ class QuidaxController extends Controller
                 'wallet' => $response['data']['wallet'] ?? null,
                 'user' => $response['data']['user'] ?? null,
             ]);
+        }else{
+            //Reverse the main account withdrawal
+           $reverseMainAccountResponse = $this->quidax->cancel_withdrawal($mainAccountResponse['data']['id'],auth()->user()->quidax_id);
+           \Log::info($reverseMainAccountResponse);
         }
 
+        
+        }
         return Response::success($response);
     }
 

@@ -157,7 +157,7 @@ class SafeHavenController extends Controller
                 $payload = [
                     "saveBeneficiary" => false,
                     "nameEnquiryReference" => $nameEnquiryRef,
-                    "debitAccountNumber" => $user->virtualAccounts()->where('provider', 'safehaven')->value('account_number'), // Get user's sub-account number
+                    "debitAccountNumber" => "5015022243",//$user->virtualAccounts()->where('provider', 'safehaven')->value('account_number'), // Get user's sub-account number
                     "beneficiaryBankCode" => $request->bank_code,
                     "beneficiaryAccountNumber" => $request->account_number,
                     "amount" => (float)$amount,
