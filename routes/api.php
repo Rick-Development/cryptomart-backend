@@ -41,7 +41,9 @@ Route::middleware('auth:api')->prefix('v1/savings')->group(function () {
         Route::get('/', [\App\Http\Controllers\Api\Savings\SafeLockController::class, 'index']);
         Route::get('plans', [\App\Http\Controllers\Api\Savings\SafeLockController::class, 'plans']);
         Route::post('create', [\App\Http\Controllers\Api\Savings\SafeLockController::class, 'create']);
+        Route::post('withdraw', [\App\Http\Controllers\Api\Savings\SafeLockController::class, 'withdraw']);
         Route::post('break', [\App\Http\Controllers\Api\Savings\SafeLockController::class, 'break']);
+        Route::get('history', [\App\Http\Controllers\Api\Savings\SafeLockController::class, 'history']);
     });
 
     // Target Savings

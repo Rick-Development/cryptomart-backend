@@ -132,11 +132,10 @@ class BushaController extends Controller
             $feeType = $feeResponse['data']['type'];
             if($feeType != 'flat'){
                 $feeAmount = $request->amount * ($feeAmount / 100);
-                $feeAmount = $feeAmount * 2;
+                // $feeAmount = $feeAmount * 2;
             }else{
-                $feeAmount = $feeAmount * 2;
+                $feeAmount = $feeAmount;// * 2;
             }
-             $feeAmount;
                 // SELL: User spends CRYPTO to get FIAT (or another crypto)
                 // Pay In: Source currency (crypto user sells)
                 // Pay Out: Target currency (fiat/crypto user receives)

@@ -173,6 +173,81 @@ class SafeLockController extends Controller
     }
 
     /**
+     * Withdraw a matured Safe Lock (after due date).
+     */
+    public function withdraw(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'lock_id' => 'required|exists:safe_locks,id',
+        ]);
+
+        if ($validator->fails()) {
+            return Response::error($validator->errors()->all());
+        }
+
+        $lock = SafeLock::where('user_id', auth()->id())->find($request->lock_id);
+
+        if (!$lock) {
+            return Response::error(['SafeLock not found']);
+        }
+
+        if ($lock->status !== 'active') {
+            return Response::error(['SafeLock is not active']);
+        }
+
+        // Check if lock has matured
+        if ($lock->maturity_date && $lock->maturity_date->isFuture()) {
+            return Response::error(['SafeLock has not matured yet. Use break endpoint for early withdrawal.']);
+        }
+
+        // 1. Get NGN Wallet
+        $user = auth()->user();
+        $wallet = UserWallet::where('user_id', $user->id)->where('currency_code', 'NGN')->first();
+        if (!$wallet) {
+            return Response::error(['NGN Wallet not found']);
+        }
+
+        // 2. Calculate interest (since lock has matured)
+        $daysLocked = $lock->lock_date->diffInDays($lock->maturity_date);
+        $interestEarned = ($lock->amount * $lock->interest_rate * $daysLocked) / (365 * 100);
+        $totalAmount = $lock->amount + $interestEarned;
+
+        // 3. Credit wallet
+        $wallet->balance += $totalAmount;
+        $wallet->save();
+
+        // 4. Update lock status
+        $lock->status = 'completed';
+        $lock->interest_accrued = $interestEarned;
+        $lock->save();
+
+        // 5. Log Transaction
+        SavingsTransaction::create([
+            'user_id' => $user->id,
+            'savingsable_id' => $lock->id,
+            'savingsable_type' => SafeLock::class,
+            'amount' => $totalAmount,
+            'balance_after' => 0,
+            'type' => 'withdrawal',
+            'status' => 'success',
+            'source' => 'safelock',
+            'narration' => "SafeLock Matured - Principal: {$lock->amount}, Interest: {$interestEarned}"
+        ]);
+
+        // 6. Notify
+        $user->notify(new SavingsNotification('SafeLock', 'Withdrawn', $totalAmount));
+
+        return Response::success([
+            'message' => 'SafeLock withdrawn successfully',
+            'data' => [
+                'principal' => $lock->amount,
+                'interest_earned' => $interestEarned,
+                'total_amount' => $totalAmount
+            ]
+        ]);
+    }
+
+    /**
      * Get Transaction History.
      */
     public function history()

@@ -123,19 +123,26 @@ class QuidaxController extends Controller
     }
     public function createSwapQuotation(Request $request)
     {
-        $response = $this->quidax->createSwapQuotation(auth()->user()->quidax_id, [
-            'from_currency' => $request->from_currency,
-            'to_currency' => $request->to_currency,
-            'from_amount' => $request->from_amount,
+        $data = [
+            'from_currency' => strtolower($request->from_currency),
+            'to_currency' => strtolower($request->to_currency),
+            'from_amount' => "{$request->from_amount}",
             // 'to_amount' => '11'
-        ]);
+        ];
+        $response = $this->quidax->createSwapQuotation(auth()->user()->quidax_id, $data);
         return Response::success($response['message'], $response['data']);
     }
     public function swap(Request $request)
     {
         $response = $this->quidax->swap(auth()->user()->quidax_id, $request->quotation_id);
-        // dd($response);
-        return Response::success($response['message'], $response['data']);
+       if($response['status'] == 'error'){
+        return Response::error( $response['message'], $response['data']);
+       }
+       if($response['status'] == 'Error'){
+            return Response::error('Swap failed', $response['error']);
+        }else{
+            return Response::success($response['message'], $response['data']);
+        }
     }
 
     public function fetch_withdraws(Request $request)
