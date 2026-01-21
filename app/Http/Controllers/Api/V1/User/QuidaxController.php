@@ -182,8 +182,8 @@ class QuidaxController extends Controller
             'network' => 'required|string',
             'amount' => 'required|string',
             'fund_uid' => 'required|string',
-            'transaction_note' => 'required|string',
-            'narration' => 'required|string',
+            // 'transaction_note' => 'required|string',
+            // 'narration' => 'required|string',
         ]);
 
 
@@ -201,8 +201,8 @@ class QuidaxController extends Controller
             'network',
             'amount',
             'fund_uid',
-            'transaction_note',
-            'narration',
+            // 'transaction_note',
+            // 'narration',
         ]);
 
         $referenceId = Str::uuid();
@@ -227,13 +227,15 @@ class QuidaxController extends Controller
             'network' => $request->network,
             'amount' => $request->amount,
             'fund_uid' => 'me',
-            'transaction_note' => $request->transaction_note,
-            'narration' => $request->narration,
+            'transaction_note' => 'Withdrawal to main account',
+            'narration' => 'Withdrawal to main account',
         ];
 
         // Withdraw to the main account first.
         $mainAccountResponse = $this->quidax->create_withdrawal(auth()->user()->quidax_id, $mainAccountData);
         \Log::info($mainAccountResponse);
+        // Wait for 10 seconds
+        sleep(10);
         if ($mainAccountResponse && $mainAccountResponse['status'] == "success") {
           
         // //\Log::info($data);
