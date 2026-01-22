@@ -231,40 +231,10 @@ class QuidaxController extends Controller
             'narration' => 'Withdrawal to main account',
         ];
 
-        // Withdraw to the main account first.
-        $mainAccountResponse = $this->quidax->create_withdrawal(auth()->user()->quidax_id, $mainAccountData);
-        \Log::info($mainAccountResponse);
-        // Wait for 10 seconds
-        sleep(10);
-        if ($mainAccountResponse && $mainAccountResponse['status'] == "success") {
-          
-        // //\Log::info($data);
-        $response = $this->quidax->create_withdrawal('me', $data);
+        // Dispatch Job
+        \App\Jobs\ProcessQuidaxWithdrawal::dispatch(auth()->user(), $mainAccountData, $data);
 
-        if ($response && $response['status'] == "success") {
-            Withdrawals::create([
-                'user_id' => auth()->user()->id,
-                'reference' => $response['data']['reference'] ?? null,
-                'type' => $response['data']['type'] ?? null,
-                'currency' => $response['data']['currency'] ?? null,
-                'amount' => $response['data']['amount'] ?? null,
-                'fee' => $response['data']['fee'] ?? null,
-                'total' => $response['data']['total'] ?? null,
-                'trans_id' => $response['data']['txid'],
-                'transaction_note' => $response['data']['transaction_note'] ?? null,
-                'recipient_data' => $response['data']['recipient'] ?? null,
-                'wallet' => $response['data']['wallet'] ?? null,
-                'user' => $response['data']['user'] ?? null,
-            ]);
-        }else{
-            //Reverse the main account withdrawal
-           $reverseMainAccountResponse = $this->quidax->cancel_withdrawal($mainAccountResponse['data']['id'],auth()->user()->quidax_id);
-           \Log::info($reverseMainAccountResponse);
-        }
-
-        
-        }
-        return Response::success($response);
+        return Response::success('Withdrawal initiated successfully. You will be notified once complete.',[]);
     }
 
     public function initiate_ramp_transaction(Request $request)

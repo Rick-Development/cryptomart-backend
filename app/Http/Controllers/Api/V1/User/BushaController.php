@@ -219,6 +219,10 @@ class BushaController extends Controller
      * Execute Trade
      * Accepts a quote_id returned from quote endpoint.
      */
+    /**
+     * Execute Trade
+     * Accepts a quote_id returned from quote endpoint.
+     */
     public function trade(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -253,10 +257,8 @@ class BushaController extends Controller
 
             if ($side == 'sell') {
                 // SELL: User sells crypto for fiat
-                // CRITICAL: We must withdraw from user to main account FIRST, then execute Busha quote
-                // Reason: Quidax withdrawals take time to confirm, and Busha pay_in address expires quickly
+                // Process via Job Queue to handle timing
                 
-                // Get network from quote for fee calculation
                 $pay_in = $quoteDetails['pay_in'];
                 $network = $this->normalizeNetwork($pay_in['network']);
                 
@@ -266,7 +268,7 @@ class BushaController extends Controller
                     throw new Exception($quidaxWallet['message']);
                 }
                 
-                // Calculate fee (2x Quidax fee as platform markup)
+                // Calculate fee
                 $feeResponse = $this->quidaxService->getWithdrawalFee(strtolower($sourceCurrency), strtolower($network));
                 $feeAmount = $feeResponse['data']['fee'];
                 $feeType = $feeResponse['data']['type'];
@@ -289,26 +291,52 @@ class BushaController extends Controller
                     $wallet->save();
                 }
                 
-                // STEP 1: Withdraw from user to main account FIRST (before executing Busha quote)
+                // Construct Main Account Data
                 $mainAccountId = $this->quidaxService->getUser()['data']['id'];
-                
-                $mainAccountResponse = $this->quidaxService->create_withdrawal($user->quidax_id, [
+                $mainAccountData = [
                     'currency' => strtolower($sourceCurrency),
                     'network' => strtolower($network),
                     'amount' => $totalAmount,
                     'fund_uid' => $mainAccountId,
                     'transaction_note' => "Trading $sourceCurrency to $targetCurrency",
                     'narration' => "Trading $sourceCurrency to $targetCurrency",
+                ];
+                
+                // Create Transaction Record (Pending)
+                $transaction = BushaTransaction::create([
+                    'id' => $reference,
+                    'user_id' => $user->id,
+                    'reference' => $reference,
+                    'busha_order_id' => null, // Will be updated by job
+                    'type' => $request->side,
+                    'pair' => $sourceCurrency . '-' . $targetCurrency,
+                    'amount' => ($request->side === 'buy' ? $targetAmount : $sourceAmount),
+                    'total' => ($request->side === 'buy' ? $sourceAmount : $targetAmount),
+                    'rate' => ($sourceAmount > 0 ? $targetAmount / $sourceAmount : 0),
+                    'status' => 'pending',
+                    'metadata' => ['quote' => $quoteDetails],
                 ]);
                 
-                if ($mainAccountResponse['status'] !== "success") {
-                    throw new Exception("Failed to withdraw from user account: " . $mainAccountResponse['message']);
-                }
+                // Dispatch Job
+                \App\Jobs\ProcessBushaSell::dispatch(
+                    $user, 
+                    $request->quote_id, 
+                    $reference, 
+                    $mainAccountData, 
+                    $sourceCurrency, 
+                    $targetCurrency, 
+                    $sourceAmount, 
+                    $totalAmount
+                );
                 
-                \Log::info("SELL: Withdrawal to main account initiated", ['response' => $mainAccountResponse]);
+                // Notify User
+                $user->notify(new BushaTradeNotification($transaction));
+                
+                DB::commit();
+                return Response::successResponse('Trade initiated successfully. Status is processing.',[]);
                 
             } else {
-                // BUY: User buys crypto with fiat
+                // BUY: User buys crypto with fiat (Synchronous)
                 if (!$wallet || $wallet->balance < $sourceAmount) {
                     throw new Exception("Insufficient $sourceCurrency balance. Required: $sourceAmount");
                 }
@@ -316,58 +344,12 @@ class BushaController extends Controller
                 // Debit the user
                 $wallet->balance -= $sourceAmount;
                 $wallet->save();
-            }
-
-            // 2. Execute Transfer on Busha (AFTER withdrawal for SELL)
-            $transfer = $this->bushaService->executeQuote($request->quote_id, $reference);
-            $pay_in = $transfer['data']['pay_in'];
-            
-            if($side == 'sell'){
-                // STEP 2: Now that we have the Busha pay_in address, withdraw from main to Busha
-                $address = $pay_in['address'];
-                $network = $this->normalizeNetwork($pay_in['network']);
-                $expires_at = $pay_in['expires_at'];
                 
-                if($expires_at < now()->toDateTimeString()){
-                    // Reverse the withdrawal to main account
-                    $this->quidaxService->create_withdrawal('me', [
-                        'currency' => strtolower($sourceCurrency),
-                        'network' => strtolower($network),
-                        'amount' => $totalAmount,
-                        'fund_uid' => $user->quidax_id,
-                        'transaction_note' => "Reversal: Pay-in expired",
-                        'narration' => "Reversal: Pay-in expired",
-                    ]);
-                    throw new Exception('Pay in address expired');
-                }
+                // Execute Transfer on Busha
+                $transfer = $this->bushaService->executeQuote($request->quote_id, $reference);
+                $pay_in = $transfer['data']['pay_in'];
                 
-                // Withdraw from main account to Busha address
-                $bushaResponse = $this->quidaxService->create_withdrawal('me', [
-                    'network' => strtolower($network),
-                    'amount' => $sourceAmount,
-                    'currency' => strtolower($sourceCurrency),
-                    'fund_uid' => $address,
-                    'transaction_note' => "Trading $targetCurrency to $sourceCurrency",
-                    'narration' => "Trading $targetCurrency to $sourceCurrency",
-                ]);
-                
-                if($bushaResponse['status'] !== 'success'){
-                    // Reverse the first withdrawal (main account back to user)
-                    $this->quidaxService->create_withdrawal('me', [
-                        'currency' => strtolower($sourceCurrency),
-                        'network' => strtolower($network),
-                        'amount' => $totalAmount,
-                        'fund_uid' => $user->quidax_id,
-                        'transaction_note' => "Reversal: Trading failed",
-                        'narration' => "Reversal: Trading failed",
-                    ]);
-                    throw new Exception("Failed to send to Busha: " . $bushaResponse['message']);
-                }
-                
-                \Log::info("SELL: Withdrawal to Busha completed", ['response' => $bushaResponse]);
-                
-            } else {
-                // BUY: Transfer NGN to Busha bank account
+                // Transfer NGN to Busha bank account
                 $expires_at = $pay_in['expires_at'];
                 $recipient_details = $pay_in['recipient_details'];
                 
@@ -399,28 +381,28 @@ class BushaController extends Controller
                     "narration" => "Trading $targetCurrency to $sourceCurrency",
                     "paymentReference" => "busha_trade_" . Str::random(12)
                 ]);
-            }
-            
-            // 3. Record Transaction
-            $transaction = BushaTransaction::create([
-                'id' => $reference,
-                'user_id' => $user->id,
-                'reference' => $reference,
-                'busha_order_id' => $transfer['id'] ?? null,
-                'type' => $request->side,
-                'pair' => $sourceCurrency . '-' . $targetCurrency,
-                'amount' => ($request->side === 'buy' ? $targetAmount : $sourceAmount),
-                'total' => ($request->side === 'buy' ? $sourceAmount : $targetAmount),
-                'rate' => ($sourceAmount > 0 ? $targetAmount / $sourceAmount : 0),
-                'status' => 'pending',
-                'metadata' => array_merge($transfer, ['quote' => $quoteDetails]),
-            ]);
+                
+                // Record Transaction
+                $transaction = BushaTransaction::create([
+                    'id' => $reference,
+                    'user_id' => $user->id,
+                    'reference' => $reference,
+                    'busha_order_id' => $transfer['id'] ?? null,
+                    'type' => $request->side,
+                    'pair' => $sourceCurrency . '-' . $targetCurrency,
+                    'amount' => ($request->side === 'buy' ? $targetAmount : $sourceAmount),
+                    'total' => ($request->side === 'buy' ? $sourceAmount : $targetAmount),
+                    'rate' => ($sourceAmount > 0 ? $targetAmount / $sourceAmount : 0),
+                    'status' => 'pending',
+                    'metadata' => array_merge($transfer, ['quote' => $quoteDetails]),
+                ]);
 
-            // Notify User
-            $user->notify(new BushaTradeNotification($transaction));
-            
-            DB::commit();
-            return Response::successResponse('Trade executed successfully', $transfer['data']);
+                // Notify User
+                $user->notify(new BushaTradeNotification($transaction));
+                
+                DB::commit();
+                return Response::successResponse('Trade executed successfully', $transfer['data']);
+            }
 
         } catch (Exception $e) {
             DB::rollBack();
