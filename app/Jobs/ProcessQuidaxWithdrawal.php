@@ -19,17 +19,21 @@ class ProcessQuidaxWithdrawal implements ShouldQueue
     protected $user;
     protected $mainAccountData;
     protected $destinationData;
+    protected $feeAmount;
+    protected $totalAmount;
 
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct($user, $mainAccountData, $destinationData)
+    public function __construct($user, $mainAccountData, $destinationData, $feeAmount = 0, $totalAmount = 0)
     {
         $this->user = $user;
         $this->mainAccountData = $mainAccountData;
         $this->destinationData = $destinationData;
+        $this->feeAmount = $feeAmount;
+        $this->totalAmount = $totalAmount;
     }
 
     /**
@@ -45,8 +49,8 @@ class ProcessQuidaxWithdrawal implements ShouldQueue
         $mainAccountResponse = $quidax->create_withdrawal($this->user->quidax_id, $this->mainAccountData);
         Log::info("ProcessQuidaxWithdrawal: Main account withdrawal response", ['response' => $mainAccountResponse]);
 
-        // Wait for 10 seconds for confirmation/propagation
-        sleep(10);
+        // Wait for 120 seconds for confirmation/propagation
+        sleep(120);
 
         if ($mainAccountResponse && isset($mainAccountResponse['status']) && $mainAccountResponse['status'] == "success") {
             
@@ -63,9 +67,9 @@ class ProcessQuidaxWithdrawal implements ShouldQueue
                     'reference' => $response['data']['reference'] ?? null,
                     'type' => $response['data']['type'] ?? null,
                     'currency' => $response['data']['currency'] ?? null,
-                    'amount' => $response['data']['amount'] ?? null,
-                    'fee' => $response['data']['fee'] ?? null,
-                    'total' => $response['data']['total'] ?? null,
+                    'amount' => $response['data']['amount'] ?? null, // Amount sent
+                    'fee' => $this->feeAmount, // Recorded Fee (Platform markup included)
+                    'total' => $this->totalAmount, // Total debited from user
                     'trans_id' => $txid,
                     'transaction_note' => $response['data']['transaction_note'] ?? null,
                     'recipient_data' => $response['data']['recipient'] ?? null,
@@ -79,14 +83,22 @@ class ProcessQuidaxWithdrawal implements ShouldQueue
                 // Reverse the main account withdrawal if destination fails
                 Log::info("ProcessQuidaxWithdrawal: Destination failed. Reversing main account withdrawal.");
                 
-                $mainWithdrawalId = $mainAccountResponse['data']['id'];
-                $reverseResponse = $quidax->cancel_withdrawal($this->user->quidax_id, $mainWithdrawalId);
+                // Reverse the amount sent to Main Account (which was totalAmount)
+                $mainWithdrawalId = $mainAccountResponse['data']['id'] ?? null;
+                if($mainWithdrawalId){
+                    $reverseResponse = $quidax->cancel_withdrawal($this->user->quidax_id, $mainWithdrawalId);
+                    Log::info("ProcessQuidaxWithdrawal: Reversal response", ['response' => $reverseResponse]);
+                }
                 
-                Log::info("ProcessQuidaxWithdrawal: Reversal response", ['response' => $reverseResponse]);
+                // TODO: Refund User Local Wallet?
+                // Logic for refunding local wallet should ideally happen here if we are strict, 
+                // but usually reversals are manual or handled by support for safety.
+                // For now, logging reversal attempt.
             }
 
         } else {
             Log::error("ProcessQuidaxWithdrawal: Main account withdrawal failed.", ['response' => $mainAccountResponse]);
+            // TODO: Refund User Local Wallet since Main Withdrawal failed.
         }
     }
 }

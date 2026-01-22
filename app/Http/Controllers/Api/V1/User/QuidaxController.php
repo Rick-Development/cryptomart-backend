@@ -175,6 +175,44 @@ class QuidaxController extends Controller
         return Response::success($response['message'], $response['data']);
     }
 
+    public function getWithdrawalFee(Request $request) {
+        $validator = \Validator::make($request->all(), [
+            'currency' => 'required|string',
+            'network' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+           return Response::error('Validation failed',$validator->errors()->all());
+        }
+
+        try {
+            $feeResponse = $this->quidax->getWithdrawalFee(strtolower($request->currency), strtolower($request->network));
+            
+            $feeAmount = $feeResponse['data']['fee'] ?? 0;
+            $feeType = $feeResponse['data']['type'] ?? 'flat'; 
+
+            // If fee is percentage (not likely checking docs but handled), usually crypto fees are flat
+            // But if logic required:
+            // if($feeType != 'flat'){ ... } 
+            
+            // Apply 2x Markup
+            $markupFee = $feeAmount * 2;
+
+            $data = [
+                'currency' => $request->currency,
+                'network' => $request->network,
+                'original_fee' => $feeAmount,
+                'total_fee' => $markupFee,
+                'type' => $feeType
+            ];
+
+            return Response::success('Withdrawal fee fetched', $data);
+
+        } catch (\Exception $e) {
+            return Response::error('Failed to fetch fee: ' . $e->getMessage(),[]);
+        }
+    }
+
     public function create_withdrawal(Request $request)
     {
         $validator = \Validator::make($request->all(), [
@@ -220,19 +258,53 @@ class QuidaxController extends Controller
             ]);
         }
 
-        //main account data
+        // 1. Fee Calculation & Balance Check
+        $user = auth()->user();
+        $sourceCurrency = $request->currency;
+        $network = $request->network;
+        $sourceAmount = $request->amount;
+        
+        $feeResponse = $this->quidax->getWithdrawalFee(strtolower($sourceCurrency), strtolower($network));
+        $feeAmount = $feeResponse['data']['fee'] ?? 0;
+        $feeType = $feeResponse['data']['type'] ?? 'flat'; // Default to flat if undefined
 
+        if($feeType != 'flat'){
+            $feeAmount = $sourceAmount * ($feeAmount / 100);
+        }
+        $feeAmount = $feeAmount * 2; // Platform charges 2x the Quidax fee
+        
+        $totalAmount = $sourceAmount + $feeAmount;
+        
+        // Check Local Wallet Balance
+        $wallet = UserWallet::where('user_id', $user->id)->whereHas('currency', function($q) use ($sourceCurrency) {
+            $q->where('code', $sourceCurrency);
+        })->first();
+
+        if (!$wallet || $wallet->balance < $totalAmount) {
+             return Response::errorResponse("Insufficient balance. Required: $totalAmount $sourceCurrency");
+        }
+        
+        // Debit Local Wallet
+        $wallet->balance -= $totalAmount;
+        $wallet->save();
+        
+        // Main Account Withdrawal Data (Move total amount to main)
         $mainAccountData = [
             'currency' => $request->currency,
             'network' => $request->network,
-            'amount' => $request->amount,
+            'amount' => $totalAmount,
             'fund_uid' => 'me',
             'transaction_note' => 'Withdrawal to main account',
             'narration' => 'Withdrawal to main account',
         ];
 
         // Dispatch Job
-        \App\Jobs\ProcessQuidaxWithdrawal::dispatch(auth()->user(), $mainAccountData, $data);
+        // Pass fee and total for recording
+        // We inject them into destinationData or pass separate args. 
+        // Let's pass them as separate constructor args to the Job.
+        $destinationData = $data; // Original dest data
+        
+        \App\Jobs\ProcessQuidaxWithdrawal::dispatch($user, $mainAccountData, $destinationData, $feeAmount, $totalAmount);
 
         return Response::success('Withdrawal initiated successfully. You will be notified once complete.',[]);
     }

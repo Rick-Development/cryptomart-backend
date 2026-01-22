@@ -73,6 +73,7 @@ Route::prefix("user")->name("api.user.")->group(function () {
             Route::post('swap', 'swap');
             Route::get('fetch-withdraws', 'fetch_withdraws');
             Route::post('cancel-withdrawal', 'cancel_withdrawal');
+            Route::get('get-withdrawal-fee', 'getWithdrawalFee');
             Route::post('create-withdrawal', 'create_withdrawal');
             Route::post('initiate-ramp-transaction', 'initiate_ramp_transaction');
             Route::post('refresh-instant-swap-quotation', 'refresh_instant_swap_quotation');

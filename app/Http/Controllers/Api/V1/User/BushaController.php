@@ -333,6 +333,7 @@ class BushaController extends Controller
                 $user->notify(new BushaTradeNotification($transaction));
                 
                 DB::commit();
+                //  return Response::successResponse($bushaResponse['message'], $data);
                 return Response::successResponse('Trade initiated successfully. Status is processing.',[]);
                 
             } else {
