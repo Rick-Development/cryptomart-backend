@@ -156,8 +156,8 @@ class SafeHavenController extends Controller
                 // 4. Call SafeHaven Transfer API
                 $payload = [
                     "saveBeneficiary" => false,
-                    "nameEnquiryReference" => $nameEnquiryRef,
-                    "debitAccountNumber" => "5015022243",//$user->virtualAccounts()->where('provider', 'safehaven')->value('account_number'), // Get user's sub-account number
+                    "nameEnquiryReference" => $nameEnquiryRef,//"5019688052",//
+                    "debitAccountNumber" => $user->virtualAccounts()->where('provider', 'safehaven')->value('account_number'), // Get user's sub-account number
                     "beneficiaryBankCode" => $request->bank_code,
                     "beneficiaryAccountNumber" => $request->account_number,
                     "amount" => (float)$amount,

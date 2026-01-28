@@ -173,8 +173,11 @@ class LoanService
 
         DB::beginTransaction();
         try {
-            // Calculate interest
-            $monthlyRate = 5.00; // 5% monthly
+            // Calculate interest using dynamic rate based on collateral asset
+            $monthlyRate = $this->getInterestRateForCollateral(
+                $borrowRequest->collateral_asset,
+                $borrowRequest->duration_days
+            );
             $months = $borrowRequest->duration_days / 30;
             $totalInterest = $borrowRequest->amount * ($monthlyRate / 100) * $months;
 
@@ -362,5 +365,191 @@ class LoanService
         // TODO: Integrate with Quidax internal transfer API
         // This should be an internal transfer within Quidax custody
         //\Log::info("Quidax Transfer: {$amount} {$asset} from User {$from->id} to User {$to->id}");
+    }
+
+    /**
+     * Get dynamic interest rate based on collateral asset and duration
+     */
+    public function getInterestRateForCollateral(string $collateralAsset, int $durationDays)
+    {
+        // Base rates by collateral asset (monthly %)
+        $baseRates = [
+            'BTC' => 4.0,   // Lower risk, lower rate
+            'USDT' => 5.0,  // Stablecoin
+            'USDC' => 5.0,  // Stablecoin
+            'SOL' => 6.0,   // Higher volatility
+            'BNB' => 5.5,   // Medium volatility
+        ];
+
+        $baseRate = $baseRates[$collateralAsset] ?? 5.0;
+
+        // Duration multiplier (longer duration = slightly lower rate)
+        $durationMultiplier = match(true) {
+            $durationDays <= 30 => 1.0,
+            $durationDays <= 60 => 0.95,
+            $durationDays <= 90 => 0.90,
+            $durationDays <= 180 => 0.85,
+            default => 0.80,
+        };
+
+        return round($baseRate * $durationMultiplier, 2);
+    }
+
+    /**
+     * Get all supported collateral assets with their interest rates
+     */
+    public function getCollateralOptions(int $durationDays = 30)
+    {
+        $assets = ['BTC', 'USDT', 'USDC', 'SOL', 'BNB'];
+        $options = [];
+
+        foreach ($assets as $asset) {
+            $interestRate = $this->getInterestRateForCollateral($asset, $durationDays);
+            $options[] = [
+                'asset' => $asset,
+                'interest_rate' => $interestRate,
+                'collateralization_ratio' => 125,
+                'price_usd' => $this->getAssetPrice($asset),
+            ];
+        }
+
+        return $options;
+    }
+
+    /**
+     * Calculate accrued interest for an active loan
+     */
+    public function calculateAccruedInterest(Loan $loan)
+    {
+        $startDate = $loan->start_date;
+        $currentDate = now();
+        
+        // Calculate days elapsed
+        $daysElapsed = $startDate->diffInDays($currentDate);
+        
+        // Calculate daily interest rate
+        $monthlyRate = $loan->interest_rate / 100;
+        $dailyRate = $monthlyRate / 30;
+        
+        // Calculate accrued interest
+        $accruedInterest = $loan->amount * $dailyRate * $daysElapsed;
+        
+        return round($accruedInterest, 8);
+    }
+
+    /**
+     * Get detailed balance for a specific loan/bond
+     */
+    public function getBondBalance(User $user, int $loanId)
+    {
+        $loan = Loan::with(['borrower', 'lender'])
+            ->where(function ($query) use ($user) {
+                $query->where('borrower_id', $user->id)
+                    ->orWhere('lender_id', $user->id);
+            })
+            ->findOrFail($loanId);
+
+        $accruedInterest = $this->calculateAccruedInterest($loan);
+        $daysRemaining = now()->diffInDays($loan->due_date, false);
+        $isOverdue = $daysRemaining < 0;
+
+        return [
+            'loan_id' => $loan->id,
+            'reference_code' => $loan->reference_code,
+            'role' => $loan->borrower_id === $user->id ? 'borrower' : 'lender',
+            'asset' => $loan->asset,
+            'principal_amount' => $loan->amount,
+            'interest_rate' => $loan->interest_rate,
+            'accrued_interest' => $accruedInterest,
+            'total_interest' => $loan->total_interest,
+            'total_repayment_required' => $loan->amount + $loan->total_interest,
+            'current_repayment_amount' => $loan->amount + $accruedInterest,
+            'collateral_asset' => $loan->collateral_asset,
+            'collateral_amount' => $loan->collateral_amount,
+            'start_date' => $loan->start_date,
+            'due_date' => $loan->due_date,
+            'days_remaining' => abs($daysRemaining),
+            'is_overdue' => $isOverdue,
+            'status' => $loan->status,
+        ];
+    }
+
+    /**
+     * Get total asset balances across all user activities
+     */
+    public function getUserAssetBalances(User $user)
+    {
+        $assets = ['BTC', 'USDT', 'USDC', 'SOL', 'BNB'];
+        $balances = [];
+
+        foreach ($assets as $asset) {
+            // Get Quidax balance
+            $quidaxBalance = $this->getQuidaxBalance($user, $asset);
+
+            // Calculate locked in lending offers
+            $lockedInLending = LoanOffer::where('user_id', $user->id)
+                ->where('asset', $asset)
+                ->whereIn('status', ['pending', 'matched'])
+                ->sum('remaining_amount');
+
+            // Calculate total lent (active loans as lender)
+            $totalLent = Loan::where('lender_id', $user->id)
+                ->where('asset', $asset)
+                ->where('status', 'active')
+                ->sum('amount');
+
+            // Calculate total borrowed (active loans as borrower)
+            $totalBorrowed = Loan::where('borrower_id', $user->id)
+                ->where('asset', $asset)
+                ->where('status', 'active')
+                ->sum('amount');
+
+            // Calculate locked as collateral (in this asset)
+            $lockedAsCollateral = Loan::where('borrower_id', $user->id)
+                ->where('collateral_asset', $asset)
+                ->where('status', 'active')
+                ->sum('collateral_amount');
+
+            // Calculate available balance
+            $availableBalance = $quidaxBalance - $lockedInLending - $lockedAsCollateral;
+
+            $balances[$asset] = [
+                'asset' => $asset,
+                'total_balance' => $quidaxBalance,
+                'available_balance' => max(0, $availableBalance),
+                'locked_in_lending_offers' => $lockedInLending,
+                'total_lent' => $totalLent,
+                'total_borrowed' => $totalBorrowed,
+                'locked_as_collateral' => $lockedAsCollateral,
+                'price_usd' => $this->getAssetPrice($asset),
+            ];
+        }
+
+        // Calculate totals in USD
+        $totalValueUSD = 0;
+        $totalAvailableUSD = 0;
+        $totalLentUSD = 0;
+        $totalBorrowedUSD = 0;
+        $totalCollateralUSD = 0;
+
+        foreach ($balances as $balance) {
+            $price = $balance['price_usd'];
+            $totalValueUSD += $balance['total_balance'] * $price;
+            $totalAvailableUSD += $balance['available_balance'] * $price;
+            $totalLentUSD += $balance['total_lent'] * $price;
+            $totalBorrowedUSD += $balance['total_borrowed'] * $price;
+            $totalCollateralUSD += $balance['locked_as_collateral'] * $price;
+        }
+
+        return [
+            'balances_by_asset' => array_values($balances),
+            'summary' => [
+                'total_value_usd' => round($totalValueUSD, 2),
+                'total_available_usd' => round($totalAvailableUSD, 2),
+                'total_lent_usd' => round($totalLentUSD, 2),
+                'total_borrowed_usd' => round($totalBorrowedUSD, 2),
+                'total_collateral_locked_usd' => round($totalCollateralUSD, 2),
+            ],
+        ];
     }
 }

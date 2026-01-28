@@ -206,7 +206,7 @@ class LoanController extends Controller
     }
 
     /**
-     * Calculate collateral requirement
+     * Calculate collateral requirement with interest rate information
      */
     public function calculateCollateral(Request $request)
     {
@@ -214,6 +214,7 @@ class LoanController extends Controller
             'asset' => 'required|string|in:USDT,USDC,BTC',
             'amount' => 'required|numeric|min:1',
             'collateral_asset' => 'required|string',
+            'duration_days' => 'required|integer|in:30,60,90,180',
         ]);
 
         if ($validator->fails()) {
@@ -231,13 +232,84 @@ class LoanController extends Controller
                 $request->collateral_asset
             );
 
+            // Get dynamic interest rate
+            $interestRate = $this->loanService->getInterestRateForCollateral(
+                $request->collateral_asset,
+                $request->duration_days
+            );
+
+            // Calculate total interest and repayment
+            $months = $request->duration_days / 30;
+            $totalInterest = $request->amount * ($interestRate / 100) * $months;
+            $totalRepayment = $request->amount + $totalInterest;
+
             return Response::successResponse('Collateral calculated successfully', [
                 'loan_amount' => $request->amount,
                 'loan_asset' => $request->asset,
                 'collateral_amount' => $collateralAmount,
                 'collateral_asset' => $request->collateral_asset,
                 'collateralization_ratio' => '125%',
+                'duration_days' => $request->duration_days,
+                'interest_rate' => $interestRate,
+                'interest_rate_type' => 'monthly',
+                'total_interest' => round($totalInterest, 8),
+                'total_repayment' => round($totalRepayment, 8),
             ]);
+        } catch (\Exception $e) {
+            return Response::errorResponse($e->getMessage());
+        }
+    }
+
+    /**
+     * Get collateral options with interest rates
+     */
+    public function getCollateralOptions(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'duration_days' => 'nullable|integer|in:30,60,90,180',
+        ]);
+
+        if ($validator->fails()) {
+            return Response::errorResponse('Validation failed', $validator->errors(), 422);
+        }
+
+        $durationDays = $request->duration_days ?? 30;
+
+        try {
+            $options = $this->loanService->getCollateralOptions($durationDays);
+
+            return Response::successResponse('Collateral options retrieved successfully', [
+                'duration_days' => $durationDays,
+                'options' => $options,
+            ]);
+        } catch (\Exception $e) {
+            return Response::errorResponse($e->getMessage());
+        }
+    }
+
+    /**
+     * Get balance for a specific bond (loan or lending offer)
+     */
+    public function getBondBalance($loanId)
+    {
+        try {
+            $balance = $this->loanService->getBondBalance(auth()->user(), $loanId);
+
+            return Response::successResponse('Bond balance retrieved successfully', $balance);
+        } catch (\Exception $e) {
+            return Response::errorResponse($e->getMessage());
+        }
+    }
+
+    /**
+     * Get total asset balances across all activities
+     */
+    public function getTotalAssetBalances()
+    {
+        try {
+            $balances = $this->loanService->getUserAssetBalances(auth()->user());
+
+            return Response::successResponse('Total balances retrieved successfully', $balances);
         } catch (\Exception $e) {
             return Response::errorResponse($e->getMessage());
         }

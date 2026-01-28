@@ -106,11 +106,16 @@ Route::middleware('auth:api')->prefix('v1/loans')->group(function () {
     Route::post('borrow', [\App\Http\Controllers\Api\V1\User\LoanController::class, 'createBorrowRequest']);
     Route::get('my-borrow-requests', [\App\Http\Controllers\Api\V1\User\LoanController::class, 'getMyBorrowRequests']);
     Route::post('calculate-collateral', [\App\Http\Controllers\Api\V1\User\LoanController::class, 'calculateCollateral']);
+    Route::get('collateral-options', [\App\Http\Controllers\Api\V1\User\LoanController::class, 'getCollateralOptions']);
     
     // Active Loans
     Route::get('my-loans/borrower', [\App\Http\Controllers\Api\V1\User\LoanController::class, 'getMyLoansAsBorrower']);
     Route::get('my-loans/lender', [\App\Http\Controllers\Api\V1\User\LoanController::class, 'getMyLoansAsLender']);
     Route::get('details/{loanId}', [\App\Http\Controllers\Api\V1\User\LoanController::class, 'getLoanDetails']);
+    
+    // Balance Endpoints
+    Route::get('bond-balance/{loanId}', [\App\Http\Controllers\Api\V1\User\LoanController::class, 'getBondBalance']);
+    Route::get('total-balances', [\App\Http\Controllers\Api\V1\User\LoanController::class, 'getTotalAssetBalances']);
     
     // Repayment
     Route::post('repay/{loanId}', [\App\Http\Controllers\Api\V1\User\LoanController::class, 'repayLoan']);
