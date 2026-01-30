@@ -161,16 +161,52 @@ class QuidaxService
     /**
      * Transfer funds from Main Account to Sub Account (Internal Transfer)
      */
-    public function fundSubAccount($quidax_id, $amount, $currency = 'ngn')
+    /**
+     * Transfer funds from Main Account to Sub Account (Internal Transfer)
+     * Endpoint: POST /users/{user_id}/wallets/{currency}/transfer (Hypothetical strict path) or /users/transfer
+     */
+    public function fundSubAccount($quidax_id, $amount, $currency)
     {
-        // Internal transfer endpoint: POST /v1/users/transfer (Confirm if this endpoint exists for Main->Sub)
-        // Payload usually: { "recipient_id": "...", "amount": "...", "currency": "..." }
+        // Using the generic transfer endpoint usually moves from Main -> Recipient
+        // Payload: { "recipient_id": "...", "amount": "...", "currency": "..." }
         $data = [
             'recipient_id' => $quidax_id,
             'amount' => $amount,
             'currency' => $currency
         ];
         return $this->curl->post("v1/users/transfer", $data);
+    }
+
+    /**
+     * Transfer funds from Sub Account to Escrow (Main Account)
+     * Strategy: Withdraw from Sub-Account -> Main Account Wallet Address
+     */
+    public function transferToEscrow($quidax_id, $amount, $currency)
+    {
+        // 1. Get Main Account Wallet Address dynamically via API
+        // We use 'me' to refer to the account owning the API Key (The Main Account)
+        try {
+            $addressResponse = $this->fetchPaymentAddress('me', $currency);
+            $escrowAddress = $addressResponse['data']['address'] ?? null;
+            
+            if (!$escrowAddress) {
+                // Try create if not exists? Or just fetch addresses list?
+                // Some wallets need 'address_creation' first. Assuming it exists for Main Account.
+                 throw new \Exception("Could not fetch Main Account Address for {$currency}");
+            }
+        } catch (\Exception $e) {
+             throw new \Exception("Escrow Setup Error: " . $e->getMessage());
+        }
+
+        $data = [
+            'currency' => $currency,
+            'amount' => $amount,
+            'fund_uid' => $escrowAddress, // Destination Address
+            'transaction_note' => 'P2P Escrow Lock'
+        ];
+
+        // 2. Perform Withdrawal from User's Sub-Account context
+        return $this->create_withdrawal($quidax_id, $data);
     }
 
     public function getWithdrawalFee($currency, $network)
