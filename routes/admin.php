@@ -501,12 +501,51 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
     });
     
-    // Gift Card Section
+    // Gift Card Section (Reloadly)
     Route::controller(GiftCardController::class)->prefix('gift-card')->name('gift.card.')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('/products', 'products')->name('products');
         Route::post('/sync-metadata', 'syncMetadata')->name('sync.metadata');
         Route::post('/toggle-status', 'toggleStatus')->name('status.toggle');
+    });
+
+    // Manual Gift Card Trading Section
+    Route::prefix('gift-card-trade')->name('gift.card.trade.')->group(function () {
+        // Categories
+        Route::controller(App\Http\Controllers\Admin\GiftCardCategoryController::class)->prefix('categories')->name('category.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('store', 'store')->name('store');
+            Route::put('update/{id}', 'update')->name('update');
+            Route::put('status/{id}', 'status')->name('status');
+            Route::delete('delete/{id}', 'destroy')->name('delete');
+        });
+
+        // Countries
+        Route::controller(App\Http\Controllers\Admin\GiftCardCountryController::class)->prefix('countries')->name('country.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('store', 'store')->name('store');
+            Route::put('update/{id}', 'update')->name('update');
+            Route::delete('delete/{id}', 'destroy')->name('delete');
+        });
+
+        // Rates
+        Route::controller(App\Http\Controllers\Admin\GiftCardRateController::class)->prefix('rates')->name('rate.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('store', 'store')->name('store');
+            Route::put('update/{id}', 'update')->name('update');
+            Route::delete('delete/{id}', 'destroy')->name('delete');
+        });
+
+        // Trades
+        Route::controller(App\Http\Controllers\Admin\GiftCardTradeController::class)->name('trade.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('pending', 'pending')->name('pending');
+            Route::get('approved', 'approved')->name('approved');
+            Route::get('rejected', 'rejected')->name('rejected');
+            Route::get('details/{id}', 'details')->name('details');
+            Route::post('approve/{id}', 'approve')->name('approve');
+            Route::post('reject/{id}', 'reject')->name('reject');
+        });
     });
 
     // Banner Section
@@ -518,7 +557,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('status/update', 'statusUpdate')->name('status.update');
     });
     
-
     // Graph API Section
     Route::controller(\App\Http\Controllers\Admin\GraphController::class)->prefix('graph')->name('graph.')->group(function () {
         Route::get('wallets', 'wallets')->name('wallets');

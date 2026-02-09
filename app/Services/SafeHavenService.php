@@ -183,12 +183,13 @@ class SafeHavenService
         }
 
         // 4. Credit the wallet
-        $reference = "safehaven:settlement:" . ($payload['session_id'] ?? ($payload['data']['sessionId'] ?? Str::uuid()));
+        $reference = Str::uuid();
         
         // Calculate Amount to Credit
         // SafeHaven fee is "fees" in the payload. We must deduct this so the platform doesn't lose money.
         $providerFee = $payload['fees'] ?? ($payload['data']['fees'] ?? 0);
-        $creditAmount = $amount - $providerFee;
+        $vat = $payload['vat'] ?? ($payload['data']['vat'] ?? 0);
+        $creditAmount = $amount - $providerFee - $vat;
 
         if ($creditAmount <= 0) {
             Log::warning("SafeHaven Settlement Skipped: Fee ($providerFee) exceeds or equals amount ($amount).", ['reference' => $reference]);

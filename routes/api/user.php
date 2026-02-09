@@ -382,6 +382,25 @@ Route::prefix("user")->name("api.user.")->group(function () {
             Route::post('transfer', 'transfer');
         });
 
+        // SafeHaven Bill Payments
+        Route::controller(App\Http\Controllers\Api\V1\User\SafeHavenBillController::class)->prefix('safehaven/bills')->group(function () {
+            Route::get('services', 'getServices');
+            Route::get('categories/{serviceId}', 'getCategories');
+            Route::get('products/{categoryId}', 'getProducts');
+            Route::post('verify', 'verifyCustomer');
+            Route::post('purchase/airtime', 'buyAirtime');
+            Route::post('purchase/data', 'buyData');
+            Route::post('purchase/cable', 'buyCable');
+            Route::post('purchase/utility', 'buyUtility');
+        });
+
+        // Referral System
+        Route::controller(App\Http\Controllers\Api\V1\User\ReferralController::class)->prefix('referral')->group(function () {
+            Route::get('info', 'getInfo');
+            Route::get('list', 'getList');
+            Route::get('earnings', 'getEarnings');
+        });
+
         // Gift Cards (Reloadly)
         $giftCardRoutes = function () {
             Route::get('/categories', 'categories');
@@ -397,6 +416,20 @@ Route::prefix("user")->name("api.user.")->group(function () {
 
         Route::controller(App\Http\Controllers\Api\V1\User\GiftCardController::class)->prefix('gift-card')->group($giftCardRoutes);
         Route::controller(App\Http\Controllers\Api\V1\User\GiftCardController::class)->prefix('gift-cards')->group($giftCardRoutes);
+
+        // Gift Card Trading (Manual)
+        Route::controller(App\Http\Controllers\Api\V1\User\GiftCardTradeController::class)->prefix('gift-card-trade')->group(function () {
+            Route::get('categories', 'getCategories');
+            Route::get('types', 'getTypes'); // ?category_id=x&country_id=y
+            Route::get('countries', 'getCountries'); // ?category_id=x
+            Route::get('rates', 'getRates');
+            Route::get('gift-cards', 'getRates'); // Alias for rates
+            Route::post('calculate', 'calculate');
+            Route::post('submit', 'submitTrade');
+            Route::get('history', 'getTrades');
+            Route::get('details/{id}', 'getTrade');
+            Route::get('status/{id}', 'checkStatus');
+        });
     });
 
 

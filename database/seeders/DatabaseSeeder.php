@@ -58,7 +58,8 @@ class DatabaseSeeder extends Seeder
             FundTransferSettingsSeeder::class,
             VirtualCardApiSeeder::class,
             SystemMaintenanceSeeder::class,
-            AppOnBoardScreenSeeder::class
+            AppOnBoardScreenSeeder::class,
+            VasServiceSeeder::class,
         ]);
 
         //demo

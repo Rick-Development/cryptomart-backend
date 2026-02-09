@@ -61,7 +61,8 @@ class ApiConnectionHelper{
 
   
 public function authentication()
-{
+{   
+    // Cache::forget($this->cacheKey);
     $tokenData = Cache::get($this->cacheKey);
 
     if ($tokenData) {
@@ -129,36 +130,48 @@ public function authentication()
 }
 
 
-public function get($url){
+    public function get($url){
+        $auth = $this->authentication();
+        
+        Log::info("SafeHaven GET Request", [
+            'url' => $this->apiAuthUrl . $url,
+            'ibs_client_id' => $auth['ibs_client_id'] ?? 'MISSING',
+        ]);
+
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+        CURLOPT_URL => $this->apiAuthUrl . $url,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => '',
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 30, // Increased timeout
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => 'GET',
+        CURLOPT_HTTPHEADER => array(
+            "Authorization: Bearer {$auth['access_token']}",
+            "ClientID: {$auth['ibs_client_id']}",
+            "Accept: application/json",
+            "Content-Type: application/json"
+        ),
+        ));
+
+        $response = curl_exec($curl);
+        $err = curl_error($curl);
+        
+        if ($err) {
+            Log::error("SafeHaven GET Error: " . $err, ['url' => $this->apiAuthUrl . $url]);
+        }
+
+        Log::info("SafeHaven GET Response", ['url' => $this->apiAuthUrl . $url, 'response' => $response]);
+
+        curl_close($curl);
+        return $response;
+
+    }public function post($url, array $data) {
     $auth = $this->authentication();
     $curl = curl_init();
-
-    curl_setopt_array($curl, array(
-    CURLOPT_URL => $this->apiAuthUrl . $url,
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_ENCODING => '',
-    CURLOPT_MAXREDIRS => 10,
-    CURLOPT_TIMEOUT => 0,
-    CURLOPT_FOLLOWLOCATION => true,
-    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-    CURLOPT_CUSTOMREQUEST => 'GET',
-    CURLOPT_HTTPHEADER => array(
-        "Authorization: Bearer {$auth['access_token']}",
-        "ClientID: {$auth['ibs_client_id']}"
-    ),
-    ));
-
-    $response = curl_exec($curl);
-    Log::info("SafeHaven GET Response", ['url' => $this->apiAuthUrl . $url, 'response' => $response]);
-
-    curl_close($curl);
-    return $response;
-
-}
-public function post($url, array $data) {
-    $auth = $this->authentication();
-    $curl = curl_init();
-    
     
     // Convert the data array to JSON
     $jsonData = json_encode($data);

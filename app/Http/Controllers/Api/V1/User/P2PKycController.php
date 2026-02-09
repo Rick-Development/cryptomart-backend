@@ -114,22 +114,22 @@ class P2PKycController extends Controller
 
         $permissions = [
             'trade' => $kycLevel >= 1,
-            'create_ad' => $kycLevel >= 2,
-            'merchant' => $kycLevel >= 3
+            'create_ad' => $kycLevel >= 1,
+            'merchant' => $kycLevel >= 1
         ];
 
-        $allowed = $permissions[$action] ?? false;
+        $allowed = $permissions[$action] ?? false;                                                                                                                                         
 
         if (!$allowed) {
             $requiredLevel = match($action) {
                 'trade' => 1,
-                'create_ad' => 2,
-                'merchant' => 3,
+                'create_ad' => 1,
+                'merchant' => 1,
                 default => 0
             };
 
             return Response::errorResponse(
-                "KYC Level {$requiredLevel} required for this action",
+                "KYC required for this action",
                 [
                     'current_level' => $kycLevel,
                     'required_level' => $requiredLevel,

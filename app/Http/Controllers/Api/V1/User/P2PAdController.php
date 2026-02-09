@@ -99,9 +99,9 @@ class P2PAdController extends Controller
         $user = auth()->user();
 
         // Check KYC Level
-        if ($user->kyc_tier < 2) {
-            return Response::errorResponse('KYC Level 2 required to create ads', null, 403);
-        }
+        // if ($user->kyc_tier < 2) {
+        //     return Response::errorResponse('KYC Level 2 required to create ads', null, 403);
+        // }
 
         // For sell ads, verify balance on Quidax (Escrow)
         if ($request->type === 'sell') {
@@ -109,13 +109,14 @@ class P2PAdController extends Controller
             $quidaxService = new \App\Services\QuidaxService();
             
             try {
-                $response = $quidaxService->fetchUserWallet($user->quidax_id, $request->asset);
+                $assetCode = strtolower($request->asset);
+                $response = $quidaxService->fetchUserWallet($user->quidax_id, $assetCode);
                 
                 if (isset($response['data']) && isset($response['data']['balance'])) {
                      $quidaxBalance = (float) $response['data']['balance'];
                      
                      if ($quidaxBalance < $request->total_amount) {
-                         return Response::errorResponse("Insufficient Quidax balance. You have {$quidaxBalance} {$request->asset}, but tried to sell {$request->total_amount}.");
+                         return Response::errorResponse("Insufficient balance. You only have {$quidaxBalance} {$request->asset} in your wallet, which is not enough to create this ad for {$request->total_amount} {$request->asset}.");
                      }
                      
                      // 1. Create Escrow Record (Tracking the Lock)
@@ -129,7 +130,7 @@ class P2PAdController extends Controller
                      ]);
 
                      // 2. Call Quidax to Move Funds (Transfer Sub -> Main)
-                     $transferResponse = $quidaxService->transferToEscrow($user->quidax_id, $request->total_amount, $request->asset);
+                     $transferResponse = $quidaxService->transferToEscrow($user->quidax_id, $request->total_amount, $assetCode);
                      
                      if (isset($transferResponse['status']) && $transferResponse['status'] === 'success') {
                          $txRef = $transferResponse['data']['id'] ?? null;
@@ -137,15 +138,16 @@ class P2PAdController extends Controller
                      } else {
                          // Failed to move funds? Destroy escrow and fail.
                          $escrow->delete();
-                         $msg = $transferResponse['message'] ?? 'Unknown Quidax error';
-                         return Response::errorResponse("Failed to lock funds: " . $msg);
+                         \Illuminate\Support\Facades\Log::error("P2P Ad Funds Lock Failed", ['response' => $transferResponse]);
+                         return Response::errorResponse("Failed to lock funds. Please try again later.");
                      }
                      
                 } else {
-                    return Response::errorResponse('Unable to fetch Quidax wallet balance.');
+                    \Illuminate\Support\Facades\Log::error("P2P Ad Wallet Fetch Failed", ['response' => $response]);
+                    return Response::errorResponse('Unable to fetch wallet balance.');
                 }
             } catch (\Exception $e) {
-                return Response::errorResponse('Error connecting to Quidax: ' . $e->getMessage());
+                return Response::errorResponse('Error connecting to wallet: ' . $e->getMessage());
             }
         }
 

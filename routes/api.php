@@ -26,6 +26,9 @@ Route::get('/login', function () {
     return response()->json(['message' => 'Unauthenticated.'], 401);
 })->name('api.login');
 
+// Public Referral Code Validation
+Route::post('/referral/validate', [App\Http\Controllers\Api\V1\User\ReferralController::class, 'validateCode']);
+
 // Savings (Piggyvest) Routes
 Route::middleware('auth:api')->prefix('v1/savings')->group(function () {
     // Flex

@@ -99,12 +99,14 @@ class P2POrderController extends Controller
                 $taker = auth()->user();
                 
                 try {
-                    $response = $quidaxService->fetchUserWallet($taker->quidax_id, $ad->asset);
+                    // Quidax requires lowercase currency codes
+                    $assetCode = strtolower($ad->asset);
+                    $response = $quidaxService->fetchUserWallet($taker->quidax_id, $assetCode);
                     if (isset($response['data']) && isset($response['data']['balance'])) {
                         $quidaxBalance = (float) $response['data']['balance'];
                         
                         if ($quidaxBalance < $cryptoAmount) {
-                             return Response::errorResponse("Insufficient Quidax {$ad->asset} balance to sell. You have {$quidaxBalance} {$ad->asset}.");
+                             return Response::errorResponse("Transaction Failed: The selling party does not have sufficient crypto balance to fulfill this order.");
                         }
                         
                         // 1. Create Escrow Record
@@ -118,22 +120,22 @@ class P2POrderController extends Controller
                          ]);
 
                         // 2. Call Quidax to Move Funds (Transfer Taker Quidax -> Main Escrow)
-                        $transferResponse = $quidaxService->transferToEscrow($taker->quidax_id, $cryptoAmount, $ad->asset);
+                        $transferResponse = $quidaxService->transferToEscrow($taker->quidax_id, $cryptoAmount, $assetCode);
 
                          if (isset($transferResponse['status']) && $transferResponse['status'] === 'success') {
                              $txRef = $transferResponse['data']['id'] ?? null;
                              $escrow->update(['transaction_ref' => $txRef, 'status' => 'held']);
                          } else {
                              $escrow->delete();
-                             $msg = $transferResponse['message'] ?? 'Unknown Quidax error';
-                             return Response::errorResponse("Failed to lock funds: " . $msg);
+                             return Response::errorResponse("Failed to lock funds. Please try again later.");
                          }
                         
                     } else {
-                        return Response::errorResponse('Unable to fetch Quidax wallet balance.');
+                        \Illuminate\Support\Facades\Log::error("P2P Order Wallet Fetch Failed", ['response' => $response, 'user_id' => $taker->id, 'asset' => $ad->asset]);
+                        return Response::errorResponse('Unable to fetch wallet balance.');
                     }
                 } catch (\Exception $e) {
-                     return Response::errorResponse('Error connecting to Quidax: ' . $e->getMessage());
+                     return Response::errorResponse('Error connecting to wallet: ' . $e->getMessage());
                 }
             }
 

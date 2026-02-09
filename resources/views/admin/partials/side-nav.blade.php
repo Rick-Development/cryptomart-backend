@@ -197,10 +197,11 @@
                             'icon'      => "menu-icon las la-graduation-cap",
                         ],
                         [
-                            'title'     => "Gift Cards",
+                            'title'     => "Gift Cards (Reloadly)",
                             'route'     => "admin.gift.card.index",
                             'icon'      => "menu-icon las la-gift",
                         ],
+
                         [
                             'title'     => "Ad Banners",
                             'route'     => "admin.banner.index",
@@ -212,6 +213,28 @@
                             'icon'      => "menu-icon las la-ticket-alt",
                         ],
                         'dropdown'      => [
+                            [
+                                'title'     => "Gift Card Trading",
+                                'icon'      => "menu-icon las la-exchange-alt",
+                                'links'     => [
+                                    [
+                                        'title'     => "Trade Submissions",
+                                        'route'     => "admin.gift.card.trade.trade.index",
+                                    ],
+                                    [
+                                        'title'     => "Categories",
+                                        'route'     => "admin.gift.card.trade.category.index",
+                                    ],
+                                    [
+                                        'title'     => "Countries",
+                                        'route'     => "admin.gift.card.trade.country.index",
+                                    ],
+                                    [
+                                        'title'     => "Rates",
+                                        'route'     => "admin.gift.card.trade.rate.index",
+                                    ],
+                                ],
+                            ],
                             [
                                 'title'     => "Crypto Loans",
                                 'icon'      => "menu-icon las la-hand-holding-usd",
