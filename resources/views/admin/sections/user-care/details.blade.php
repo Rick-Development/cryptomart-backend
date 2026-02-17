@@ -102,7 +102,7 @@
                                     'permission'    => "admin.users.send.mail",
                                 ])
                             </div>
-                            <div class="user-action-btn">
+                            <div class="user-action-btn d-none">
                                 @include('admin.components.link.custom',[
                                     'class'         => "bg--info four login-as-member",
                                     'icon'          => "las la-user-check me-1",

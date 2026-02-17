@@ -14,73 +14,70 @@
 @endsection
 
 @section('content')
-        <div class="col-lg-12">
-            <div class="card b-radius--10 ">
-                <div class="card-body p-0">
-                    <div class="table-responsive--sm table-responsive">
-                        <table class="table table--light style--two">
-                            <thead>
-                                <tr>
-                                    <th>@lang('Name')</th>
-                                    <th>@lang('Slug')</th>
-                                    <th>@lang('Status')</th>
-                                    <th>@lang('Action')</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($categories as $category)
-                                    <tr>
-                                        <td data-label="@lang('Name')">
-                                            <div class="user">
-                                                <div class="thumb">
-                                                    <img src="{{ $category->icon }}" alt="image">
-                                                </div>
-                                                <span class="name">{{ __($category->name) }}</span>
-                                            </div>
-                                        </td>
-                                        <td data-label="@lang('Slug')">{{ __($category->slug) }}</td>
-                                        <td data-label="@lang('Status')">
-                                            @if($category->status == 1)
-                                                <span class="badge badge--success">@lang('Active')</span>
-                                            @else
-                                                <span class="badge badge--danger">@lang('Inactive')</span>
-                                            @endif
-                                        </td>
-                                        <td data-label="@lang('Action')">
-                                            <button class="btn btn-sm btn--primary editBtn" 
-                                                data-id="{{ $category->id }}" 
-                                                data-name="{{ $category->name }}" 
-                                                data-icon="{{ $category->icon }}">
-                                                <i class="la la-pencil"></i> @lang('Edit')
-                                            </button>
-                                            
-                                            <button class="btn btn-sm btn--{{ $category->status == 1 ? 'danger' : 'success' }} statusBtn" 
-                                                data-id="{{ $category->id }}" 
-                                                data-status="{{ $category->status }}">
-                                                @if($category->status == 1)
-                                                    <i class="la la-eye-slash"></i> @lang('Disable')
-                                                @else
-                                                    <i class="la la-eye"></i> @lang('Enable')
-                                                @endif
-                                            </button>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td class="text-muted text-center" colspan="100%">{{ __($emptyMessage ?? 'No data found') }}</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
+    <div class="table-area">
+        <div class="table-wrapper">
+            <div class="table-header">
+                <h5 class="title">{{ __("Gift Card Categories") }}</h5>
+                <div class="table-btn-area">
+                    <button class="btn btn--primary addBtn"><i class="las la-plus"></i> @lang('Add New')</button>
                 </div>
-                @if ($categories->hasPages())
-                    <div class="card-footer py-4">
-                        {{ get_paginate($categories) }}
-                    </div>
-                @endif
+            </div>
+            <div class="table-responsive">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>@lang('Name')</th>
+                            <th>@lang('Icon')</th>
+                            <th>@lang('Status')</th>
+                            <th>@lang('Action')</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($categories as $category)
+                            <tr>
+                                <td data-label="@lang('Name')">{{ __($category->name) }}</td>
+                                <td data-label="@lang('Icon')">
+                                    <ul class="user-list">
+                                        <li><img src="{{ asset($category->icon) }}" alt="icon"></li>
+                                    </ul>
+                                </td>
+                                <td data-label="@lang('Status')">
+                                    <span class="{{ $category->status == 1 ? 'badge badge--success' : 'badge badge--danger' }}">{{ $category->status == 1 ? __('Active') : __('Inactive') }}</span>
+                                </td>
+                                <td data-label="@lang('Action')">
+                                    <button class="btn btn-sm btn--primary editBtn" 
+                                        data-id="{{ $category->id }}" 
+                                        data-name="{{ $category->name }}" 
+                                        data-icon="{{ $category->icon }}"
+                                        data-description="{{ $category->description }}">
+                                        <i class="la la-pencil"></i> @lang('Edit')
+                                    </button>
+                                    
+                                    <button class="btn btn-sm btn--{{ $category->status == 1 ? 'danger' : 'success' }} statusBtn" 
+                                        data-id="{{ $category->id }}" 
+                                        data-status="{{ $category->status }}">
+                                        @if($category->status == 1)
+                                            <i class="la la-eye-slash"></i> @lang('Disable')
+                                        @else
+                                            <i class="la la-eye"></i> @lang('Enable')
+                                        @endif
+                                    </button>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td class="text-muted text-center" colspan="100%">{{ __($emptyMessage ?? 'No data found') }}</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         </div>
+        @if ($categories->hasPages())
+            <div class="table-footer">
+                {{ get_paginate($categories) }}
+            </div>
+        @endif
     </div>
 
     {{-- Add Modal --}}
@@ -93,7 +90,7 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <form action="{{ route('admin.gift.card.trade.category.store') }}" method="POST">
+                <form action="{{ route('admin.gift.card.trade.category.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="modal-body">
                         <div class="form-group">
@@ -101,8 +98,12 @@
                             <input type="text" name="name" class="form-control" required>
                         </div>
                         <div class="form-group">
-                            <label>@lang('Icon URL')</label>
+                            <label>@lang('Icon URL') <small>(Optional)</small></label>
                             <input type="text" name="icon" class="form-control" placeholder="https://...">
+                        </div>
+                        <div class="form-group">
+                            <label>@lang('Or Upload Image')</label>
+                            <input type="file" name="image" class="form-control" accept="image/*">
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -123,7 +124,7 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <form action="" method="POST">
+                <form action="" method="POST" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
                     <div class="modal-body">
@@ -132,8 +133,12 @@
                             <input type="text" name="name" class="form-control" required>
                         </div>
                         <div class="form-group">
-                            <label>@lang('Icon URL')</label>
+                            <label>@lang('Icon URL') <small>(Optional)</small></label>
                             <input type="text" name="icon" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>@lang('Or Upload Image')</label>
+                            <input type="file" name="image" class="form-control" accept="image/*">
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -169,10 +174,6 @@
         </div>
     </div>
 @endsection
-
-@push('breadcrumb-plugins')
-    <button class="btn btn-sm btn--primary addBtn"><i class="las la-plus"></i> @lang('Add New')</button>
-@endpush
 
 @push('script')
     <script>

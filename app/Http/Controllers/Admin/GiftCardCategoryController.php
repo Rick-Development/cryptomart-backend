@@ -26,14 +26,25 @@ class GiftCardCategoryController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255|unique:gift_card_trade_categories,name',
-            'icon' => 'nullable|string', // Assuming image upload handling elsewhere or URL
+            'icon' => 'nullable|string', // Assuming URL input for now based on view, or switch to file upload
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'description' => 'nullable|string',
         ]);
 
         $category = new GiftCardTradeCategory();
         $category->name = $request->name;
         $category->slug = Str::slug($request->name);
-        $category->icon = $request->icon;
+        
+        // Handle Image Upload if provided
+        if($request->hasFile('image')) {
+            $image = $request->file('image');
+            $imageName = time().'.'.$image->extension();
+            $image->move(public_path('assets/images/gift-card'), $imageName);
+            $category->icon = 'assets/images/gift-card/'.$imageName;
+        } else {
+             $category->icon = $request->icon; // Fallback to URL if needed
+        }
+
         $category->description = $request->description;
         $category->status = 1;
         $category->save();
@@ -50,15 +61,27 @@ class GiftCardCategoryController extends Controller
         $request->validate([
             'name' => 'required|string|max:255|unique:gift_card_trade_categories,name,' . $id,
             'icon' => 'nullable|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'description' => 'nullable|string',
         ]);
 
         $category = GiftCardTradeCategory::findOrFail($id);
         $category->name = $request->name;
         $category->slug = Str::slug($request->name);
-        if ($request->has('icon')) {
+        
+        if($request->hasFile('image')) {
+            // Delete old image if exists and not a URL
+            if($category->icon && file_exists(public_path($category->icon))) {
+                unlink(public_path($category->icon));
+            }
+            $image = $request->file('image');
+            $imageName = time().'.'.$image->extension();
+            $image->move(public_path('assets/images/gift-card'), $imageName);
+            $category->icon = 'assets/images/gift-card/'.$imageName;
+        } elseif ($request->has('icon') && !empty($request->icon)) {
              $category->icon = $request->icon;
         }
+        
         $category->description = $request->description;
         $category->save();
 

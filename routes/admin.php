@@ -499,6 +499,28 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::post('/users/{id}/flag', 'flagUser')->name('flag');
         });
 
+        // Merchant Applications
+        Route::controller(App\Http\Controllers\Admin\MerchantApplicationController::class)->prefix('merchant-applications')->name('merchant.applications.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/settings', 'settings')->name('settings');
+            Route::post('/settings', 'updateSettings')->name('settings.update');
+            Route::get('/{id}', 'show')->name('show');
+            Route::post('/{id}/approve', 'approve')->name('approve');
+            Route::post('/{id}/reject', 'reject')->name('reject');
+        });
+
+    });
+    
+    // Bill Payment (VAS) Section
+    Route::prefix('bill-payment')->name('bill.payment.')->group(function () {
+        // Categories
+        Route::controller(App\Http\Controllers\Admin\VasServiceCategoryController::class)->prefix('categories')->name('category.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('store', 'store')->name('store');
+            Route::put('update/{id}', 'update')->name('update');
+            Route::put('status/{id}', 'status')->name('status');
+            Route::delete('delete/{id}', 'destroy')->name('delete');
+        });
     });
     
     // Gift Card Section (Reloadly)
@@ -563,6 +585,19 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('transactions', 'transactions')->name('transactions');
         Route::get('transactions/{id}', 'transactionDetails')->name('transactions.details');
     });
+
+    // USDT EasyEarn Management
+    Route::prefix('usdt-easyearn')->name('usdt.easyearn.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\UsdtEasyearnController::class, 'index'])->name('index');
+        Route::get('/investments', [App\Http\Controllers\Admin\UsdtEasyearnController::class, 'investments'])->name('investments');
+        Route::get('/investment/{id}', [App\Http\Controllers\Admin\UsdtEasyearnController::class, 'details'])->name('details');
+        Route::post('/investment/{id}/credit', [App\Http\Controllers\Admin\UsdtEasyearnController::class, 'creditInterest'])->name('credit.interest');
+        Route::put('/investment/{id}/cancel', [App\Http\Controllers\Admin\UsdtEasyearnController::class, 'cancel'])->name('cancel');
+        Route::get('/bulk-credit', [App\Http\Controllers\Admin\UsdtEasyearnController::class, 'bulkCreditPage'])->name('bulk.credit.page');
+        Route::post('/bulk-credit', [App\Http\Controllers\Admin\UsdtEasyearnController::class, 'bulkCredit'])->name('bulk.credit');
+        Route::get('/settings', [App\Http\Controllers\Admin\UsdtEasyearnController::class, 'settingsPage'])->name('settings');
+        Route::put('/settings', [App\Http\Controllers\Admin\UsdtEasyearnController::class, 'updateSettings'])->name('settings.update');
+    });
 });
 
 Route::get('admin/pusher/beams-auth', function (Request $request) {
@@ -602,3 +637,4 @@ Route::get('admin/pusher/beams-auth', function (Request $request) {
 
     return response()->json($beamsToken);
 })->name('admin.pusher.beams.auth');
+

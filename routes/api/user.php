@@ -356,11 +356,18 @@ Route::prefix("user")->name("api.user.")->group(function () {
             Route::get('/kyc/status', [App\Http\Controllers\Api\V1\User\P2PKycController::class, 'status']);
             Route::get('/kyc/limits', [App\Http\Controllers\Api\V1\User\P2PKycController::class, 'limits']);
             Route::post('/kyc/check-permission', [App\Http\Controllers\Api\V1\User\P2PKycController::class, 'checkPermission']);
-            
+
             // Feedback
             Route::post('/orders/{uid}/feedback', [App\Http\Controllers\Api\V1\User\P2PFeedbackController::class, 'store']);
             Route::get('/feedback', [App\Http\Controllers\Api\V1\User\P2PFeedbackController::class, 'index']);
             Route::get('/feedback/{userId}', [App\Http\Controllers\Api\V1\User\P2PFeedbackController::class, 'index']);
+
+            // Merchant Application
+            Route::prefix('merchant')->controller(App\Http\Controllers\Api\V1\User\MerchantApplicationController::class)->group(function () {
+                Route::post('check-eligibility', 'checkEligibility');
+                Route::post('apply', 'apply');
+                Route::get('status', 'status');
+            });
         });
 
         // Locked funds
@@ -429,6 +436,16 @@ Route::prefix("user")->name("api.user.")->group(function () {
             Route::get('history', 'getTrades');
             Route::get('details/{id}', 'getTrade');
             Route::get('status/{id}', 'checkStatus');
+        });
+
+        // USDT EasyEarn (Savings/Staking)
+        Route::controller(App\Http\Controllers\Api\V1\User\UsdtEasyearnController::class)->prefix('usdt-easyearn')->group(function () {
+            Route::get('info', 'info');
+            Route::get('my-savings', 'myInvestments');
+            Route::post('save', 'invest');
+            Route::get('savings/{id}', 'show');
+            Route::post('withdraw-interest/{id}', 'withdrawInterest');
+            Route::post('withdraw-principal/{id}', 'withdrawPrincipal');
         });
     });
 

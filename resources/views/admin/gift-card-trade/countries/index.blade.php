@@ -14,66 +14,69 @@
 @endsection
 
 @section('content')
-        <div class="col-lg-12">
-            <div class="card b-radius--10 ">
-                <div class="card-body p-0">
-                    <div class="table-responsive--sm table-responsive">
-                        <table class="table table--light style--two">
-                            <thead>
-                                <tr>
-                                    <th>@lang('Name')</th>
-                                    <th>@lang('Code')</th>
-                                    <th>@lang('Flag')</th>
-                                    <th>@lang('Action')</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($countries as $country)
-                                    <tr>
-                                        <td data-label="@lang('Name')">{{ __($country->name) }}</td>
-                                        <td data-label="@lang('Code')">{{ __($country->code) }}</td>
-                                        <td data-label="@lang('Flag')">
-                                            @if($country->flag_icon)
-                                                <div class="user">
-                                                    <div class="thumb">
-                                                        <img src="{{ $country->flag_icon }}" alt="flag">
-                                                    </div>
-                                                </div>
-                                            @else
-                                                -
-                                            @endif
-                                        </td>
-                                        <td data-label="@lang('Action')">
-                                            <button class="btn btn-sm btn--primary editBtn" 
-                                                data-id="{{ $country->id }}" 
-                                                data-name="{{ $country->name }}" 
-                                                data-code="{{ $country->code }}"
-                                                data-flag_icon="{{ $country->flag_icon }}">
-                                                <i class="la la-pencil"></i> @lang('Edit')
-                                            </button>
-                                            
-                                            <button class="btn btn-sm btn--danger deleteBtn" 
-                                                data-id="{{ $country->id }}">
-                                                <i class="la la-trash"></i> @lang('Delete')
-                                            </button>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td class="text-muted text-center" colspan="100%">{{ __($emptyMessage ?? 'No data found') }}</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
+    <div class="table-area">
+        <div class="table-wrapper">
+            <div class="table-header">
+                <h5 class="title">{{ __("Gift Card Countries") }}</h5>
+                <div class="table-btn-area">
+                    <button class="btn btn--primary addBtn"><i class="las la-plus"></i> @lang('Add New')</button>
                 </div>
-                @if ($countries->hasPages())
-                    <div class="card-footer py-4">
-                        {{ get_paginate($countries) }}
-                    </div>
-                @endif
+            </div>
+            <div class="table-responsive">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>@lang('Name')</th>
+                            <th>@lang('Code')</th>
+                            <th>@lang('Flag')</th>
+                            <th>@lang('Action')</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($countries as $country)
+                            <tr>
+                                <td data-label="@lang('Name')">{{ __($country->name) }}</td>
+                                <td data-label="@lang('Code')">{{ __($country->code) }}</td>
+                                <td data-label="@lang('Flag')">
+                                    @if($country->flag_icon)
+                                        <div class="user">
+                                            <div class="thumb">
+                                                <img src="{{ asset($country->flag_icon) }}" alt="flag">
+                                            </div>
+                                        </div>
+                                    @else
+                                        -
+                                    @endif
+                                </td>
+                                <td data-label="@lang('Action')">
+                                    <button class="btn btn-sm btn--primary editBtn" 
+                                        data-id="{{ $country->id }}" 
+                                        data-name="{{ $country->name }}" 
+                                        data-code="{{ $country->code }}"
+                                        data-flag_icon="{{ $country->flag_icon }}">
+                                        <i class="la la-pencil"></i> @lang('Edit')
+                                    </button>
+                                    
+                                    <button class="btn btn-sm btn--danger deleteBtn" 
+                                        data-id="{{ $country->id }}">
+                                        <i class="la la-trash"></i> @lang('Delete')
+                                    </button>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td class="text-muted text-center" colspan="100%">{{ __($emptyMessage ?? 'No data found') }}</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         </div>
+        @if ($countries->hasPages())
+            <div class="table-footer">
+                {{ get_paginate($countries) }}
+            </div>
+        @endif
     </div>
 
     {{-- Add Modal --}}
@@ -86,7 +89,7 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <form action="{{ route('admin.gift.card.trade.country.store') }}" method="POST">
+                <form action="{{ route('admin.gift.card.trade.country.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="modal-body">
                         <div class="form-group">
@@ -98,8 +101,12 @@
                             <input type="text" name="code" class="form-control" maxlength="3" required>
                         </div>
                         <div class="form-group">
-                            <label>@lang('Flag Icon URL')</label>
+                            <label>@lang('Flag Icon URL') <small>(Optional)</small></label>
                             <input type="text" name="flag_icon" class="form-control" placeholder="https://...">
+                        </div>
+                        <div class="form-group">
+                            <label>@lang('Or Upload Flag')</label>
+                            <input type="file" name="flag" class="form-control" accept="image/*">
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -120,7 +127,7 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <form action="" method="POST">
+                <form action="" method="POST" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
                     <div class="modal-body">
@@ -133,8 +140,12 @@
                             <input type="text" name="code" class="form-control" maxlength="3" required>
                         </div>
                         <div class="form-group">
-                            <label>@lang('Flag Icon URL')</label>
+                            <label>@lang('Flag Icon URL') <small>(Optional)</small></label>
                             <input type="text" name="flag_icon" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>@lang('Or Upload Flag')</label>
+                            <input type="file" name="flag" class="form-control" accept="image/*">
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -170,10 +181,6 @@
         </div>
     </div>
 @endsection
-
-@push('breadcrumb-plugins')
-    <button class="btn btn-sm btn--primary addBtn"><i class="las la-plus"></i> @lang('Add New')</button>
-@endpush
 
 @push('script')
     <script>

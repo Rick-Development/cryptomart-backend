@@ -14,63 +14,69 @@
 @endsection
 
 @section('content')
-        <div class="col-lg-12">
-            <div class="card b-radius--10 ">
-                <div class="card-body p-0">
-                    <div class="table-responsive--sm table-responsive">
-                        <table class="table table--light style--two">
-                            <thead>
-                                <tr>
-                                    <th>@lang('Category')</th>
-                                    <th>@lang('Type')</th>
-                                    <th>@lang('Country')</th>
-                                    <th>@lang('Rate')</th>
-                                    <th>@lang('Limits')</th>
-                                    <th>@lang('Action')</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($rates as $rate)
-                                    <tr>
-                                        <td data-label="@lang('Category')">{{ __($rate->category->name) }}</td>
-                                        <td data-label="@lang('Type')">{{ __($rate->type->name) }}</td>
-                                        <td data-label="@lang('Country')">{{ __($rate->country->name) }}</td>
-                                        <td data-label="@lang('Rate')">{{ get_amount($rate->rate_per_dollar) }} NGN / 1 {{ __($rate->currency) }}</td>
-                                        <td data-label="@lang('Limits')">
-                                            {{ get_amount($rate->min_amount) }} - {{ get_amount($rate->max_amount) }} {{ __($rate->currency) }}
-                                        </td>
-                                        <td data-label="@lang('Action')">
-                                            <button class="btn btn-sm btn--primary editBtn" 
-                                                data-id="{{ $rate->id }}" 
-                                                data-min="{{ $rate->min_amount }}" 
-                                                data-max="{{ $rate->max_amount }}" 
-                                                data-rate="{{ $rate->rate_per_dollar }}"
-                                                data-currency="{{ $rate->currency }}">
-                                                <i class="la la-pencil"></i> @lang('Edit')
-                                            </button>
-                                            
-                                            <button class="btn btn-sm btn--danger deleteBtn" 
-                                                data-id="{{ $rate->id }}">
-                                                <i class="la la-trash"></i> @lang('Delete')
-                                            </button>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td class="text-muted text-center" colspan="100%">{{ __($emptyMessage ?? 'No data found') }}</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
+    <div class="table-area">
+        <div class="table-wrapper">
+            <div class="table-header">
+                <h5 class="title">{{ __("Gift Card Rates") }}</h5>
+                <div class="table-btn-area">
+                    <button class="btn btn--primary addBtn"><i class="las la-plus"></i> @lang('Add New')</button>
                 </div>
-                @if ($rates->hasPages())
-                    <div class="card-footer py-4">
-                        {{ get_paginate($rates) }}
-                    </div>
-                @endif
+            </div>
+            <div class="table-responsive">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>@lang('Category')</th>
+                            <th>@lang('Type')</th>
+                            <th>@lang('Country')</th>
+                            <th>@lang('Rate')</th>
+                            <th>@lang('Limits')</th>
+                            <th>@lang('Action')</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($rates as $rate)
+                            <tr>
+                                <td data-label="@lang('Category')">{{ __($rate->category->name) }}</td>
+                                <td data-label="@lang('Type')">{{ __($rate->type->name) }}</td>
+                                <td data-label="@lang('Country')">{{ __($rate->country->name) }}</td>
+                                <td data-label="@lang('Rate')">{{ get_amount($rate->rate_per_dollar) }} NGN / 1 {{ __($rate->currency) }}</td>
+                                <td data-label="@lang('Limits')">
+                                    {{ get_amount($rate->min_amount) }} - {{ get_amount($rate->max_amount) }} {{ __($rate->currency) }}
+                                </td>
+                                <td data-label="@lang('Action')">
+                                    <button class="btn btn-sm btn--primary editBtn" 
+                                        data-id="{{ $rate->id }}" 
+                                        data-category_id="{{ $rate->category_id }}"
+                                        data-type_id="{{ $rate->type_id }}"
+                                        data-country_id="{{ $rate->country_id }}"
+                                        data-min="{{ $rate->min_amount }}" 
+                                        data-max="{{ $rate->max_amount }}" 
+                                        data-rate="{{ $rate->rate_per_dollar }}"
+                                        data-currency="{{ $rate->currency }}">
+                                        <i class="la la-pencil"></i> @lang('Edit')
+                                    </button>
+                                    
+                                    <button class="btn btn-sm btn--danger deleteBtn" 
+                                        data-id="{{ $rate->id }}">
+                                        <i class="la la-trash"></i> @lang('Delete')
+                                    </button>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td class="text-muted text-center" colspan="100%">{{ __($emptyMessage ?? 'No data found') }}</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         </div>
+        @if ($rates->hasPages())
+            <div class="table-footer">
+                {{ get_paginate($rates) }}
+            </div>
+        @endif
     </div>
 
     {{-- Add Modal --}}
@@ -176,6 +182,33 @@
                     @csrf
                     @method('PUT')
                     <div class="modal-body">
+                         <div class="form-group">
+                            <label>@lang('Category')</label>
+                            <select name="category_id" class="form-control" required>
+                                <option value="">@lang('Select Category')</option>
+                                @foreach($categories as $category)
+                                    <option value="{{ $category->id }}">{{ __($category->name) }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>@lang('Type')</label>
+                            <select name="type_id" class="form-control" required>
+                                <option value="">@lang('Select Type')</option>
+                                @foreach($types as $type)
+                                    <option value="{{ $type->id }}">{{ __($type->name) }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>@lang('Country')</label>
+                            <select name="country_id" class="form-control" required>
+                                <option value="">@lang('Select Country')</option>
+                                @foreach($countries as $country)
+                                    <option value="{{ $country->id }}">{{ __($country->name) }}</option>
+                                @endforeach
+                            </select>
+                        </div>
                          <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
@@ -250,10 +283,6 @@
     </div>
 @endsection
 
-@push('breadcrumb-plugins')
-    <button class="btn btn-sm btn--primary addBtn"><i class="las la-plus"></i> @lang('Add New')</button>
-@endpush
-
 @push('script')
     <script>
         (function ($) {
@@ -269,6 +298,11 @@
                 var action = "{{ route('admin.gift.card.trade.rate.update', ':id') }}";
                 action = action.replace(':id', data.id);
                 modal.find('form').attr('action', action);
+                
+                modal.find('select[name=category_id]').val(data.category_id);
+                modal.find('select[name=type_id]').val(data.type_id);
+                modal.find('select[name=country_id]').val(data.country_id);
+                
                 modal.find('input[name=min_amount]').val(data.min);
                 modal.find('input[name=max_amount]').val(data.max);
                 modal.find('input[name=rate_per_dollar]').val(data.rate);

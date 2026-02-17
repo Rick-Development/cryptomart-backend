@@ -121,16 +121,57 @@ class SafeHavenBillService
                 $response = [];
                 switch ($type) {
                     case 'airtime':
-                        $response = $this->vasHelper->airtime($data);
+                        // Filter payload for Airtime to avoid 400 Bad Request
+                        $airtimeData = [
+                             'amount' => (float)$data['amount'],
+                             'phoneNumber' => $data['phoneNumber'],
+                             'serviceCategoryId' => $data['serviceCategoryId'],
+                             'debitAccountNumber' => $data['debitAccountNumber'],
+                             'channel' => $data['channel'] ?? 'WEB',
+                        ];
+                        $response = $this->vasHelper->airtime($airtimeData);
                         break;
                     case 'data':
-                        $response = $this->vasHelper->data($data);
+                        // Filter payload for Data to avoid 400 Bad Request
+                        $dataData = [
+                             'amount' => (float)$data['amount'],
+                             'phoneNumber' => $data['phoneNumber'],
+                             'productId' => $data['productId'] ?? null,
+                             'serviceCategoryId' => $data['serviceCategoryId'],
+                             'debitAccountNumber' => $data['debitAccountNumber'],
+                             'channel' => $data['channel'] ?? 'WEB',
+                        ];
+                        // Remove null values
+                        $dataData = array_filter($dataData, fn($val) => $val !== null);
+                        $response = $this->vasHelper->data($dataData);
                         break;
                     case 'cable':
-                        $response = $this->vasHelper->cableTv($data);
+                        // Filter payload for Cable TV to avoid 400 Bad Request
+                        $cableData = [
+                             'amount' => (float)$data['amount'],
+                             'smartCardNumber' => $data['smartCardNumber'] ?? $data['entityNumber'],
+                             'productId' => $data['productId'] ?? null,
+                             'serviceCategoryId' => $data['serviceCategoryId'],
+                             'debitAccountNumber' => $data['debitAccountNumber'],
+                             'channel' => $data['channel'] ?? 'WEB',
+                        ];
+                        // Remove null values
+                        $cableData = array_filter($cableData, fn($val) => $val !== null);
+                        $response = $this->vasHelper->cableTv($cableData);
                         break;
                     case 'utility':
-                        $response = $this->vasHelper->utilityBills($data);
+                        // Filter payload for Utility Bills to avoid 400 Bad Request
+                        $utilityData = [
+                             'amount' => (float)$data['amount'],
+                             'meterNumber' => $data['meterNumber'] ?? $data['entityNumber'],
+                             'productId' => $data['productId'] ?? null,
+                             'serviceCategoryId' => $data['serviceCategoryId'],
+                             'debitAccountNumber' => $data['debitAccountNumber'],
+                             'channel' => $data['channel'] ?? 'WEB',
+                        ];
+                        // Remove null values
+                        $utilityData = array_filter($utilityData, fn($val) => $val !== null);
+                        $response = $this->vasHelper->utilityBills($utilityData);
                         break;
                     default:
                         throw new Exception("Invalid bill payment type.");
@@ -166,43 +207,27 @@ class SafeHavenBillService
         
         switch ($type) {
             case 'airtime':
-                $networkMap = [
-                    'MTN' => 'MTN_AIRTIME_CATEGORY_ID',
-                    'GLO' => 'GLO_AIRTIME_CATEGORY_ID',
-                    'AIRTEL' => 'AIRTEL_AIRTIME_CATEGORY_ID',
-                    '9MOBILE' => '9MOBILE_AIRTIME_CATEGORY_ID',
-                ];
-                $data['serviceCategoryId'] = $networkMap[$data['network'] ?? ''] ?? null;
+                $data['serviceCategoryId'] = \App\Models\VasServiceCategory::whereHas('service', function($q) {
+                    $q->where('name', 'Mobile Recharge')->orWhere('name', 'Airtime');
+                })->where('name', $data['network'] ?? '')->value('identifier');
                 break;
                 
             case 'data':
-                $networkMap = [
-                    'MTN' => 'MTN_DATA_CATEGORY_ID',
-                    'GLO' => 'GLO_DATA_CATEGORY_ID',
-                    'AIRTEL' => 'AIRTEL_DATA_CATEGORY_ID',
-                    '9MOBILE' => '9MOBILE_DATA_CATEGORY_ID',
-                ];
-                $data['serviceCategoryId'] = $networkMap[$data['network'] ?? ''] ?? null;
+                $data['serviceCategoryId'] = \App\Models\VasServiceCategory::whereHas('service', function($q) {
+                    $q->where('name', 'DATA PURCHASE')->orWhere('name', 'Data');
+                })->where('name', $data['network'] ?? '')->value('identifier');
                 break;
                 
             case 'cable':
-                $providerMap = [
-                    'DSTV' => 'DSTV_CATEGORY_ID',
-                    'GOTV' => 'GOTV_CATEGORY_ID',
-                    'STARTIMES' => 'STARTIMES_CATEGORY_ID',
-                ];
-                $data['serviceCategoryId'] = $providerMap[$data['provider'] ?? ''] ?? null;
+                $data['serviceCategoryId'] = \App\Models\VasServiceCategory::whereHas('service', function($q) {
+                    $q->where('name', 'CABLE TV')->orWhere('name', 'Cable');
+                })->where('name', $data['provider'] ?? '')->value('identifier');
                 break;
                 
             case 'utility':
-                $providerMap = [
-                    'EKEDC' => 'EKEDC_CATEGORY_ID',
-                    'IKEDC' => 'IKEDC_CATEGORY_ID',
-                    'AEDC' => 'AEDC_CATEGORY_ID',
-                    'PHED' => 'PHED_CATEGORY_ID',
-                    'KEDCO' => 'KEDCO_CATEGORY_ID',
-                ];
-                $data['serviceCategoryId'] = $providerMap[$data['provider'] ?? ''] ?? null;
+                $data['serviceCategoryId'] = \App\Models\VasServiceCategory::whereHas('service', function($q) {
+                    $q->where('name', 'UTILITY BILLS')->orWhere('name', 'Utility');
+                })->where('name', $data['provider'] ?? '')->value('identifier');
                 break;
         }
         

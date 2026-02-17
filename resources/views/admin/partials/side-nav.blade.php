@@ -197,6 +197,11 @@
                             'icon'      => "menu-icon las la-graduation-cap",
                         ],
                         [
+                            'title'     => "USDT EasyEarn",
+                            'route'     => "admin.usdt.easyearn.index",
+                            'icon'      => "menu-icon las la-coins",
+                        ],
+                        [
                             'title'     => "Gift Cards (Reloadly)",
                             'route'     => "admin.gift.card.index",
                             'icon'      => "menu-icon las la-gift",
@@ -213,6 +218,16 @@
                             'icon'      => "menu-icon las la-ticket-alt",
                         ],
                         'dropdown'      => [
+                            [
+                                'title'     => "Bill Payment",
+                                'icon'      => "menu-icon las la-file-invoice-dollar",
+                                'links'     => [
+                                    [
+                                        'title'     => "Categories",
+                                        'route'     => "admin.bill.payment.category.index",
+                                    ],
+                                ],
+                            ],
                             [
                                 'title'     => "Gift Card Trading",
                                 'icon'      => "menu-icon las la-exchange-alt",
@@ -268,6 +283,14 @@
                                     [
                                         'title'     => "Ads",
                                         'route'     => "admin.p2p.ads.index",
+                                    ],
+                                    [
+                                        'title'     => "Merchant Applications",
+                                        'route'     => "admin.p2p.merchant.applications.index",
+                                    ],
+                                    [
+                                        'title'     => "Merchant Settings",
+                                        'route'     => "admin.p2p.merchant.applications.settings",
                                     ],
                                     [
                                         'title'     => "Disputes",

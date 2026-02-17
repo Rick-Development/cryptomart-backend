@@ -1,0 +1,77 @@
+Fetching Services...
+Found Airtime Service: Mobile Recharge (ID: 61efaba1da92348f9dde5f6c)
+
+Fetching Categories for Service ID: 61efaba1da92348f9dde5f6c ...
+Array
+(
+    [statusCode] => 200
+    [message] => Service Categories fetched successfully.
+    [data] => Array
+        (
+            [0] => Array
+                (
+                    [providerCommission] => 
+                    [_id] => 61efacbcda92348f9dde5f92
+                    [name] => MTN
+                    [identifier] => MTN
+                    [service] => 61efaba1da92348f9dde5f6c
+                    [vendor] => 687759c5bb42b8f020c309d2
+                    [isFixedAmount] => 
+                    [description] => Mtn Airtime
+                    [logoUrl] => https://res.cloudinary.com/sudo-africa/image/upload/v1646209736/SafeHavenVAS/New-mtn-logo_u1dy66.jpg
+                    [createdAt] => 2022-01-25T07:54:36.495Z
+                    [updatedAt] => 2025-07-21T14:03:42.765Z
+                    [__v] => 0
+                )
+
+            [1] => Array
+                (
+                    [providerCommission] => 
+                    [_id] => 61efacd3da92348f9dde5f98
+                    [name] => AIRTEL
+                    [identifier] => AIRTEL
+                    [service] => 61efaba1da92348f9dde5f6c
+                    [vendor] => 687759c5bb42b8f020c309d2
+                    [isFixedAmount] => 
+                    [description] => Airtel Airtime
+                    [logoUrl] => https://res.cloudinary.com/sudo-africa/image/upload/v1646208565/SafeHavenVAS/Airtel-Logo-Vector_1_hwmiic.png
+                    [createdAt] => 2022-01-25T07:54:59.694Z
+                    [updatedAt] => 2025-07-21T14:04:05.449Z
+                    [__v] => 0
+                )
+
+            [2] => Array
+                (
+                    [providerCommission] => 
+                    [_id] => 61efacdeda92348f9dde5f9b
+                    [name] => 9Mobile
+                    [identifier] => ETISALAT
+                    [service] => 61efaba1da92348f9dde5f6c
+                    [vendor] => 687759c5bb42b8f020c309d2
+                    [isFixedAmount] => 
+                    [description] => 9Mobile Airtime
+                    [logoUrl] => https://res.cloudinary.com/sudo-africa/image/upload/v1646208565/SafeHavenVAS/download_1_y1c4lr.png
+                    [createdAt] => 2022-01-25T07:55:10.458Z
+                    [updatedAt] => 2025-07-21T14:04:19.923Z
+                    [__v] => 0
+                )
+
+            [3] => Array
+                (
+                    [providerCommission] => 
+                    [_id] => 61efacc8da92348f9dde5f95
+                    [name] => GLO
+                    [identifier] => GLO
+                    [service] => 61efaba1da92348f9dde5f6c
+                    [vendor] => 687759c5bb42b8f020c309d2
+                    [isFixedAmount] => 
+                    [description] => Glo Airtime
+                    [logoUrl] => https://res.cloudinary.com/sudo-africa/image/upload/v1646208567/SafeHavenVAS/kindpng_4648442_1_ibibke.png
+                    [createdAt] => 2022-01-25T07:54:48.081Z
+                    [updatedAt] => 2025-07-21T14:03:55.033Z
+                    [__v] => 0
+                )
+
+        )
+
+)

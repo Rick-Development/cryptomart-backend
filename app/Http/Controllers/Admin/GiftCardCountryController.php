@@ -21,12 +21,23 @@ class GiftCardCountryController extends Controller
             'name' => 'required|string|max:255',
             'code' => 'required|string|max:3|unique:gift_card_trade_countries,code',
             'flag_icon' => 'nullable|string',
+            'flag' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
         $country = new GiftCardTradeCountry();
         $country->name = $request->name;
         $country->code = strtoupper($request->code);
-        $country->flag_icon = $request->flag_icon;
+        
+        // Handle Flag Upload if provided
+        if($request->hasFile('flag')) {
+            $image = $request->file('flag');
+            $imageName = time().'.'.$image->extension();
+            $image->move(public_path('assets/images/country-flag'), $imageName);
+            $country->flag_icon = 'assets/images/country-flag/'.$imageName;
+        } else {
+            $country->flag_icon = $request->flag_icon;
+        }
+        
         $country->save();
 
         $notify[] = ['success', 'Country created successfully'];
@@ -39,14 +50,26 @@ class GiftCardCountryController extends Controller
             'name' => 'required|string|max:255',
             'code' => 'required|string|max:3|unique:gift_card_trade_countries,code,' . $id,
             'flag_icon' => 'nullable|string',
+            'flag' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
         $country = GiftCardTradeCountry::findOrFail($id);
         $country->name = $request->name;
         $country->code = strtoupper($request->code);
-        if ($request->has('flag_icon')) {
+        
+        if($request->hasFile('flag')) {
+            // Delete old details if exists and not a URL (basic check)
+             if($country->flag_icon && file_exists(public_path($country->flag_icon))) {
+                unlink(public_path($country->flag_icon));
+            }
+            $image = $request->file('flag');
+            $imageName = time().'.'.$image->extension();
+            $image->move(public_path('assets/images/country-flag'), $imageName);
+            $country->flag_icon = 'assets/images/country-flag/'.$imageName;
+        } elseif ($request->has('flag_icon') && !empty($request->flag_icon)) {
             $country->flag_icon = $request->flag_icon;
         }
+        
         $country->save();
 
         $notify[] = ['success', 'Country updated successfully'];

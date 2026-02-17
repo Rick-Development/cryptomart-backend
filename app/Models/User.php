@@ -254,4 +254,9 @@ class User extends Authenticatable
         return $this->hasMany(P2PPaymentMethod::class, 'user_id');
     }
 
+    public function easyearnWallet()
+    {
+        return $this->hasOne(UsdtEasyearnWallet::class, 'user_id');
+    }
+
 }

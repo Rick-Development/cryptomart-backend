@@ -23,6 +23,16 @@ class Kernel extends ConsoleKernel
 
         // EduSave Payouts - Daily
         $schedule->command('edusave:process-payouts')->daily();
+
+        // USDT EasyEarn - Credit interest on 10th of every month at 2:00 AM
+        $schedule->command('usdt:easyearn:credit-interest')
+                 ->monthlyOn(10, '02:00')
+                 ->timezone('Africa/Lagos');
+
+        // USDT EasyEarn - Check for matured investments daily at 3:00 AM
+        $schedule->command('usdt:easyearn:check-maturity')
+                 ->dailyAt('03:00')
+                 ->timezone('Africa/Lagos');
     }
 
     /**

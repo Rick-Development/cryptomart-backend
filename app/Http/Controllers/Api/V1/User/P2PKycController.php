@@ -112,24 +112,46 @@ class P2PKycController extends Controller
         $kycLevel = $user->kyc_tier ?? 0;
         $action = $request->input('action'); // 'trade', 'create_ad', 'merchant'
 
+        // New Merchant Logic
+        if ($action === 'merchant') {
+            if ($user->merchant_status !== 'approved') {
+                return Response::errorResponse(
+                    'Merchant verification required',
+                    [
+                        'action' => 'merchant',
+                        'allowed' => false,
+                        'merchant_status' => $user->merchant_status ?? 'none',
+                        'message' => $this->getMerchantStatusMessage($user->merchant_status)
+                    ],
+                    403
+                );
+            }
+            
+            return Response::successResponse('Permission granted', [
+                'action' => 'merchant',
+                'allowed' => true,
+                'merchant_status' => 'approved',
+                'kyc_level' => $kycLevel
+            ]);
+        }
+
         $permissions = [
             'trade' => $kycLevel >= 1,
-            'create_ad' => $kycLevel >= 1,
-            'merchant' => $kycLevel >= 1
+            'create_ad' => $kycLevel >= 2, // Changed to Level 2
+            // 'merchant' handled above
         ];
 
-        $allowed = $permissions[$action] ?? false;                                                                                                                                         
+        $allowed = $permissions[$action] ?? false;
 
         if (!$allowed) {
             $requiredLevel = match($action) {
                 'trade' => 1,
-                'create_ad' => 1,
-                'merchant' => 1,
+                'create_ad' => 2,
                 default => 0
             };
 
             return Response::errorResponse(
-                "KYC required for this action",
+                "KYC Level {$requiredLevel} required for this action",
                 [
                     'current_level' => $kycLevel,
                     'required_level' => $requiredLevel,
@@ -144,5 +166,15 @@ class P2PKycController extends Controller
             'allowed' => true,
             'kyc_level' => $kycLevel
         ]);
+    }
+
+    private function getMerchantStatusMessage($status)
+    {
+        return match($status) {
+            'none' => 'Please apply for merchant status',
+            'pending' => 'Your merchant application is under review',
+            'rejected' => 'Your merchant application was rejected',
+            default => 'Unknown status'
+        };
     }
 }

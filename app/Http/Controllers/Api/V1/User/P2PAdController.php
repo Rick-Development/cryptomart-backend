@@ -98,10 +98,17 @@ class P2PAdController extends Controller
 
         $user = auth()->user();
 
-        // Check KYC Level
-        // if ($user->kyc_tier < 2) {
-        //     return Response::errorResponse('KYC Level 2 required to create ads', null, 403);
-        // }
+        // Check Merchant Status
+        if ($user->merchant_status !== 'approved') {
+            return Response::errorResponse(
+                'You must be an approved merchant to create ads.',
+                [
+                    'merchant_status' => $user->merchant_status ?? 'none',
+                    'action' => 'create_ad'
+                ],
+                403
+            );
+        }
 
         // For sell ads, verify balance on Quidax (Escrow)
         if ($request->type === 'sell') {
